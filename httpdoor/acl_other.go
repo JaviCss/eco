@@ -5,8 +5,6 @@ package httpdoor
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 )
 
 func createPrivateTemp(dir, prefix, suffix string) (*os.File, string, error) {
@@ -31,13 +29,12 @@ func restrictFileToOwner(path string) error {
 }
 
 func PortFileACL(path string) ([]string, error) {
-	out, err := exec.Command("stat", "-c", "%a", path).CombinedOutput()
+	info, err := os.Stat(path)
 	if err != nil {
 		return nil, fmt.Errorf("httpdoor: %w", err)
 	}
-	mode := strings.TrimSpace(string(out))
-	if mode == "" {
-		return nil, fmt.Errorf("httpdoor: stat returned no mode for the port file")
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("httpdoor: %s is not a regular file", path)
 	}
-	return []string{mode}, nil
+	return []string{fmt.Sprintf("%04o", info.Mode().Perm())}, nil
 }

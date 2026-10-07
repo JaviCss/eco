@@ -3,18 +3,8 @@ package store
 import (
 	"errors"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
-
-func makeJunction(link, target string) error {
-	if err := os.MkdirAll(target, 0o755); err != nil {
-		return err
-	}
-	cmd := exec.Command("cmd", "/c", "mklink", "/J", link, target)
-	cmd.SysProcAttr = hiddenProcAttr()
-	return cmd.Run()
-}
 
 func errorsIs(err, target error) bool {
 	return errors.Is(err, target)
