@@ -3,11 +3,68 @@
 package httpdoor
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"unsafe"
 
 	"golang.org/x/sys/windows"
 )
+
+func ownerOnlyAttributes() (*windows.SecurityAttributes, error) {
+	sid, err := currentUserSID()
+	if err != nil {
+		return nil, err
+	}
+	sddl := "D:P(A;;FA;;;" + sid + ")"
+	sd, err := windows.SecurityDescriptorFromString(sddl)
+	if err != nil {
+		return nil, fmt.Errorf("httpdoor: the owner DACL %q could not be built: %w", sddl, err)
+	}
+	return &windows.SecurityAttributes{
+		Length:            uint32(unsafe.Sizeof(windows.SecurityAttributes{})),
+		SecurityDescriptor: sd,
+	}, nil
+}
+
+func createPrivateTemp(dir, prefix, suffix string) (*os.File, string, error) {
+	attributes, err := ownerOnlyAttributes()
+	if err != nil {
+		return nil, "", err
+	}
+	for attempt := 0; attempt < 8; attempt++ {
+		raw := make([]byte, 8)
+		if _, err := rand.Read(raw); err != nil {
+			return nil, "", fmt.Errorf("httpdoor: %w", err)
+		}
+		name := filepath.Join(dir, prefix+"."+hex.EncodeToString(raw)+suffix)
+		target, err := windows.UTF16PtrFromString(name)
+		if err != nil {
+			return nil, "", fmt.Errorf("httpdoor: %w", err)
+		}
+		handle, err := windows.CreateFile(
+			target,
+			windows.GENERIC_READ|windows.GENERIC_WRITE,
+			0,
+			attributes,
+			windows.CREATE_NEW,
+			windows.FILE_ATTRIBUTE_NORMAL,
+			0,
+		)
+		if err != nil {
+			if errors.Is(err, windows.ERROR_FILE_EXISTS) {
+				continue
+			}
+			return nil, "", fmt.Errorf("httpdoor: %w", err)
+		}
+		return os.NewFile(uintptr(handle), name), name, nil
+	}
+	return nil, "", fmt.Errorf("httpdoor: no free temporary name under %s", dir)
+}
 
 func currentUserSID() (string, error) {
 	token := windows.GetCurrentProcessToken()
@@ -26,14 +83,9 @@ func currentUserSID() (string, error) {
 }
 
 func restrictFileToOwner(path string) error {
-	sid, err := currentUserSID()
+	sd, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
 	if err != nil {
-		return err
-	}
-	sddl := "D:P(A;;FA;;;" + sid + ")"
-	sd, err := windows.SecurityDescriptorFromString(sddl)
-	if err != nil {
-		return fmt.Errorf("httpdoor: the owner DACL %q could not be built: %w", sddl, err)
+		return fmt.Errorf("httpdoor: the DACL of %s is unreadable: %w", filepath.Base(path), err)
 	}
 	dacl, _, err := sd.DACL()
 	if err != nil {

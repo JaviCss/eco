@@ -29,30 +29,25 @@ func WritePortFile(path string, info PortInfo) error {
 		return fmt.Errorf("httpdoor: %w", err)
 	}
 	dir := filepath.Dir(path)
-	temporary, err := os.CreateTemp(dir, filepath.Base(path)+".*.tmp")
+	file, temporaryName, err := createPrivateTemp(dir, filepath.Base(path), ".tmp")
 	if err != nil {
-		return fmt.Errorf("httpdoor: %w", err)
-	}
-	temporaryName := temporary.Name()
-	cleanup := func() {
-		temporary.Close()
-		os.Remove(temporaryName)
-	}
-	if _, err := temporary.Write(raw); err != nil {
-		cleanup()
-		return fmt.Errorf("httpdoor: %w", err)
-	}
-	if err := temporary.Sync(); err != nil {
-		cleanup()
-		return fmt.Errorf("httpdoor: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		os.Remove(temporaryName)
-		return fmt.Errorf("httpdoor: %w", err)
-	}
-	if err := restrictFileToOwner(temporaryName); err != nil {
-		os.Remove(temporaryName)
 		return err
+	}
+	cleanup := func() {
+		file.Close()
+		os.Remove(temporaryName)
+	}
+	if _, err := file.Write(raw); err != nil {
+		cleanup()
+		return fmt.Errorf("httpdoor: %w", err)
+	}
+	if err := file.Sync(); err != nil {
+		cleanup()
+		return fmt.Errorf("httpdoor: %w", err)
+	}
+	if err := file.Close(); err != nil {
+		os.Remove(temporaryName)
+		return fmt.Errorf("httpdoor: %w", err)
 	}
 	if err := os.Rename(temporaryName, path); err != nil {
 		os.Remove(temporaryName)
