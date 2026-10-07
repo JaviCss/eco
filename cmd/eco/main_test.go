@@ -52,7 +52,7 @@ func asExitError(err error, target **exec.ExitError) bool {
 
 func seedBases(t *testing.T, user, project string) {
 	t.Helper()
-	s, err := store.Open(store.Config{UserDB: user, ProjectDB: project, Origin: "seed"})
+	s, err := store.Open(store.Config{Profile: store.ProfileRuntime, UserDB: user, ProjectDB: project, Origin: "seed"})
 	if err != nil {
 		t.Fatalf("seed the bases: %v", err)
 	}
@@ -170,26 +170,16 @@ func TestDoctorWarnsOnASyncedFolder(t *testing.T) {
 	}
 }
 
-func TestHelpListsOnlyDoctor(t *testing.T) {
-	binary := buildEco(t)
-	out, code := run(t, binary, "--help")
-	if code != 0 {
-		t.Fatalf("--help exited %d:\n%s", code, out)
-	}
-	if !strings.Contains(out, "doctor") {
-		t.Fatalf("--help must list doctor:\n%s", out)
-	}
-	for _, forbidden := range []string{"mcp", "serve", "read", "append", "search", "promote"} {
-		if strings.Contains(strings.ToLower(out), forbidden) {
-			t.Fatalf("--help mentions %q, and this card ships no verbs:\n%s", forbidden, out)
-		}
-	}
-}
-
 func TestUnknownVerbIsRejected(t *testing.T) {
 	binary := buildEco(t)
-	_, code := run(t, binary, "mcp")
+	out, code := run(t, binary, "teletransport")
 	if code == 0 {
-		t.Fatal("an unknown verb exited 0")
+		t.Fatalf("an unknown verb exited 0:\n%s", out)
+	}
+	if code != exitUsage {
+		t.Fatalf("an unknown verb exited %d, want %d:\n%s", code, exitUsage, out)
+	}
+	if !strings.Contains(out, "unknown verb") {
+		t.Fatalf("an unknown verb must say so:\n%s", out)
 	}
 }
