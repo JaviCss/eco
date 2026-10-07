@@ -1,0 +1,53 @@
+### go test -count=1 -run 'TestStdioErrorsNeverLeakBasePaths|TestNoBasePathLeaks|TestCLIErrorTextNeverCarriesTheBasePath' -v ./mcpdoor/ ./httpdoor/ ./cmd/eco/ ###
+exit: 0
+
+=== RUN   TestStdioErrorsNeverLeakBasePaths
+--- PASS: TestStdioErrorsNeverLeakBasePaths (0.02s)
+PASS
+ok  	github.com/JaviCss/eco/mcpdoor	0.661s
+=== RUN   TestNoBasePathLeaks
+=== RUN   TestNoBasePathLeaks/read
+=== RUN   TestNoBasePathLeaks/search
+=== RUN   TestNoBasePathLeaks/get
+=== RUN   TestNoBasePathLeaks/append
+=== RUN   TestNoBasePathLeaks/promote
+=== RUN   TestNoBasePathLeaks/probe
+--- PASS: TestNoBasePathLeaks (0.01s)
+    --- PASS: TestNoBasePathLeaks/read (0.00s)
+    --- PASS: TestNoBasePathLeaks/search (0.00s)
+    --- PASS: TestNoBasePathLeaks/get (0.00s)
+    --- PASS: TestNoBasePathLeaks/append (0.00s)
+    --- PASS: TestNoBasePathLeaks/promote (0.00s)
+    --- PASS: TestNoBasePathLeaks/probe (0.00s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.120s
+=== RUN   TestCLIErrorTextNeverCarriesTheBasePath
+    cli_test.go:264: [get --user-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\user.db --project-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\project.db --axis Z2 --ids ghost] exited 4: eco get: eco: not found
+    cli_test.go:264: [search --user-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\user.db --project-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\project.db --axis Z2 --query no such datum] exited 4: eco search: eco: not found
+    cli_test.go:264: [append --user-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\user.db --project-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\project.db --axis Z2 --body smuggled] exited 5: eco append: eco: forbidden
+    cli_test.go:264: [promote --user-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\user.db --project-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\project.db --ids ghost] exited 4: eco promote: eco: not found
+    cli_test.go:264: [get --user-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\missing\user.db --project-db C:\Users\JAVIER~1\AppData\Local\Temp\TestCLIErrorTextNeverCarriesTheBasePath380806697\002\project.db --axis Z2 --ids ghost] exited 3: eco open: eco: unavailable
+--- PASS: TestCLIErrorTextNeverCarriesTheBasePath (1.73s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	1.843s
+
+### go list -deps ./... | rg '^net' ###
+
+net/netip
+net
+net/url
+net/textproto
+net/http/httptrace
+net/http/internal
+net/http/internal/ascii
+net/http/internal/httpcommon
+net/http
+
+### rg -l 'net/http|modelcontextprotocol' -g '*.go' -g '!*_test.go' . (que paquetes tocan red o el SDK) ###
+
+.\mcpdoor\server.go
+.\mcpdoor\door.go
+.\httpdoor\httpdoor.go
+.\cmd\eco\serve.go
+.\poc\c5-mcp-tools-list\main.go
+

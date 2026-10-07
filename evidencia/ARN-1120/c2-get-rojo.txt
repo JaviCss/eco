@@ -1,0 +1,24 @@
+go.exe : # github.com/JaviCss/eco/store [github.com/JaviCss/eco/store.test]
+En línea: 1 Carácter: 83
++ ... 120" | Out-Null; $out = & go test ./port/... ./store/... 2>&1; $code  ...
++                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (# github.com/Ja...eco/store.test]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+store\promote_matrix_test.go:47:39: cannot use outage (variable of type *outageStore) as port.Port value in return 
+statement: *outageStore does not implement port.Port (missing method Get)
+store\promote_test.go:81:72: cannot use outage (variable of type *outageStore) as port.Port value in argument to 
+Promote: *outageStore does not implement port.Port (missing method Get)
+store\store_test.go:100:31: cannot use &outageStore{ÔÇª} (value of type *outageStore) as port.Outage value in return 
+statement: *outageStore does not implement port.Outage (missing method Get)
+--- FAIL: TestFakePassesConformance (0.00s)
+    --- FAIL: TestFakePassesConformance/get_returns_the_entries_in_the_order_requested (0.00s)
+        conformance.go:435: Get: got error eco: Get: eco: unavailable: not implemented, want nil
+    --- FAIL: TestFakePassesConformance/get_with_a_missing_id_fails_the_whole_batch (0.00s)
+        conformance.go:461: Get with a missing id: got eco: Get: eco: unavailable: not implemented, want ErrNotFound
+    --- FAIL: TestFakePassesConformance/get_during_an_outage_reports_unavailable (0.00s)
+        conformance.go:538: Get after outage: got error eco: Get: eco: unavailable: not implemented, want nil
+FAIL
+FAIL	github.com/JaviCss/eco/port	0.463s
+FAIL	github.com/JaviCss/eco/store [build failed]
+FAIL

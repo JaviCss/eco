@@ -1,0 +1,11 @@
+### go test -count=1 -run TestServeDiesWithItsParent -v ./cmd/eco/ ###
+exit: 0
+
+=== RUN   TestServeDiesWithItsParent
+    cli_windows_test.go:42: helper output:
+        === RUN   TestServeDiesWithItsParent
+            cli_windows_test.go:92: helper launched eco serve as pid 35936 and now dies
+--- PASS: TestServeDiesWithItsParent (2.94s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	3.055s
+

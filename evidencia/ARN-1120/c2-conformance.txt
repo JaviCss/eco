@@ -1,0 +1,134 @@
+### go test -count=1 -run Conformance -v ./port/ ./store/ ###
+exit: 0
+
+=== RUN   TestConformanceRefusesToRunWithoutOutage
+--- PASS: TestConformanceRefusesToRunWithoutOutage (0.16s)
+=== RUN   TestFakePassesConformance
+=== RUN   TestFakePassesConformance/read_empty_returns_no_entries
+=== RUN   TestFakePassesConformance/append_then_read_returns_the_entry
+=== RUN   TestFakePassesConformance/append_without_id_is_rejected
+=== RUN   TestFakePassesConformance/append_same_key_twice_stores_one_entry
+=== RUN   TestFakePassesConformance/append_same_key_twice_returns_the_same_entry
+=== RUN   TestFakePassesConformance/append_and_read_do_not_alias_attrs
+=== RUN   TestFakePassesConformance/at_is_stored_and_returned_as_utc
+=== RUN   TestFakePassesConformance/read_orders_newest_first
+=== RUN   TestFakePassesConformance/read_honors_limit
+=== RUN   TestFakePassesConformance/append_axis_out_of_scope_is_rejected
+=== RUN   TestFakePassesConformance/invalid_scope_is_rejected
+=== RUN   TestFakePassesConformance/validation_wins_over_cancelled_context
+=== RUN   TestFakePassesConformance/cancelled_context_wins_over_outage
+=== RUN   TestFakePassesConformance/validation_wins_over_outage
+=== RUN   TestFakePassesConformance/search_finds_body_substring
+=== RUN   TestFakePassesConformance/search_without_match_returns_not_found
+=== RUN   TestFakePassesConformance/probe_reports_healthy
+=== RUN   TestFakePassesConformance/unavailable_makes_every_operation_report_unavailable
+=== RUN   TestFakePassesConformance/not_found_and_unavailable_stay_distinct
+=== RUN   TestFakePassesConformance/cancelled_context_is_respected_and_touches_nothing
+=== RUN   TestFakePassesConformance/scopes_are_separate_stores
+=== RUN   TestFakePassesConformance/get_returns_the_entries_in_the_order_requested
+=== RUN   TestFakePassesConformance/get_with_a_missing_id_fails_the_whole_batch
+=== RUN   TestFakePassesConformance/get_with_an_empty_batch_is_rejected
+=== RUN   TestFakePassesConformance/get_with_a_batch_over_the_ceiling_is_rejected
+=== RUN   TestFakePassesConformance/get_on_an_axis_out_of_scope_is_rejected
+=== RUN   TestFakePassesConformance/get_validation_wins_over_a_cancelled_context
+=== RUN   TestFakePassesConformance/get_on_a_cancelled_context_wins_over_an_outage
+=== RUN   TestFakePassesConformance/get_during_an_outage_reports_unavailable
+=== RUN   TestFakePassesConformance/get_touches_nothing_on_a_cancelled_context
+--- PASS: TestFakePassesConformance (0.00s)
+    --- PASS: TestFakePassesConformance/read_empty_returns_no_entries (0.00s)
+    --- PASS: TestFakePassesConformance/append_then_read_returns_the_entry (0.00s)
+    --- PASS: TestFakePassesConformance/append_without_id_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/append_same_key_twice_stores_one_entry (0.00s)
+    --- PASS: TestFakePassesConformance/append_same_key_twice_returns_the_same_entry (0.00s)
+    --- PASS: TestFakePassesConformance/append_and_read_do_not_alias_attrs (0.00s)
+    --- PASS: TestFakePassesConformance/at_is_stored_and_returned_as_utc (0.00s)
+    --- PASS: TestFakePassesConformance/read_orders_newest_first (0.00s)
+    --- PASS: TestFakePassesConformance/read_honors_limit (0.00s)
+    --- PASS: TestFakePassesConformance/append_axis_out_of_scope_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/invalid_scope_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/validation_wins_over_cancelled_context (0.00s)
+    --- PASS: TestFakePassesConformance/cancelled_context_wins_over_outage (0.00s)
+    --- PASS: TestFakePassesConformance/validation_wins_over_outage (0.00s)
+    --- PASS: TestFakePassesConformance/search_finds_body_substring (0.00s)
+    --- PASS: TestFakePassesConformance/search_without_match_returns_not_found (0.00s)
+    --- PASS: TestFakePassesConformance/probe_reports_healthy (0.00s)
+    --- PASS: TestFakePassesConformance/unavailable_makes_every_operation_report_unavailable (0.00s)
+    --- PASS: TestFakePassesConformance/not_found_and_unavailable_stay_distinct (0.00s)
+    --- PASS: TestFakePassesConformance/cancelled_context_is_respected_and_touches_nothing (0.00s)
+    --- PASS: TestFakePassesConformance/scopes_are_separate_stores (0.00s)
+    --- PASS: TestFakePassesConformance/get_returns_the_entries_in_the_order_requested (0.00s)
+    --- PASS: TestFakePassesConformance/get_with_a_missing_id_fails_the_whole_batch (0.00s)
+    --- PASS: TestFakePassesConformance/get_with_an_empty_batch_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/get_with_a_batch_over_the_ceiling_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/get_on_an_axis_out_of_scope_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/get_validation_wins_over_a_cancelled_context (0.00s)
+    --- PASS: TestFakePassesConformance/get_on_a_cancelled_context_wins_over_an_outage (0.00s)
+    --- PASS: TestFakePassesConformance/get_during_an_outage_reports_unavailable (0.00s)
+    --- PASS: TestFakePassesConformance/get_touches_nothing_on_a_cancelled_context (0.00s)
+PASS
+ok  	github.com/JaviCss/eco/port	0.470s
+=== RUN   TestStoreConformance
+=== RUN   TestStoreConformance/read_empty_returns_no_entries
+=== RUN   TestStoreConformance/append_then_read_returns_the_entry
+=== RUN   TestStoreConformance/append_without_id_is_rejected
+=== RUN   TestStoreConformance/append_same_key_twice_stores_one_entry
+=== RUN   TestStoreConformance/append_same_key_twice_returns_the_same_entry
+=== RUN   TestStoreConformance/append_and_read_do_not_alias_attrs
+=== RUN   TestStoreConformance/at_is_stored_and_returned_as_utc
+=== RUN   TestStoreConformance/read_orders_newest_first
+=== RUN   TestStoreConformance/read_honors_limit
+=== RUN   TestStoreConformance/append_axis_out_of_scope_is_rejected
+=== RUN   TestStoreConformance/invalid_scope_is_rejected
+=== RUN   TestStoreConformance/validation_wins_over_cancelled_context
+=== RUN   TestStoreConformance/cancelled_context_wins_over_outage
+=== RUN   TestStoreConformance/validation_wins_over_outage
+=== RUN   TestStoreConformance/search_finds_body_substring
+=== RUN   TestStoreConformance/search_without_match_returns_not_found
+=== RUN   TestStoreConformance/probe_reports_healthy
+=== RUN   TestStoreConformance/unavailable_makes_every_operation_report_unavailable
+=== RUN   TestStoreConformance/not_found_and_unavailable_stay_distinct
+=== RUN   TestStoreConformance/cancelled_context_is_respected_and_touches_nothing
+=== RUN   TestStoreConformance/scopes_are_separate_stores
+=== RUN   TestStoreConformance/get_returns_the_entries_in_the_order_requested
+=== RUN   TestStoreConformance/get_with_a_missing_id_fails_the_whole_batch
+=== RUN   TestStoreConformance/get_with_an_empty_batch_is_rejected
+=== RUN   TestStoreConformance/get_with_a_batch_over_the_ceiling_is_rejected
+=== RUN   TestStoreConformance/get_on_an_axis_out_of_scope_is_rejected
+=== RUN   TestStoreConformance/get_validation_wins_over_a_cancelled_context
+=== RUN   TestStoreConformance/get_on_a_cancelled_context_wins_over_an_outage
+=== RUN   TestStoreConformance/get_during_an_outage_reports_unavailable
+=== RUN   TestStoreConformance/get_touches_nothing_on_a_cancelled_context
+--- PASS: TestStoreConformance (1.37s)
+    --- PASS: TestStoreConformance/read_empty_returns_no_entries (0.04s)
+    --- PASS: TestStoreConformance/append_then_read_returns_the_entry (0.03s)
+    --- PASS: TestStoreConformance/append_without_id_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/append_same_key_twice_stores_one_entry (0.04s)
+    --- PASS: TestStoreConformance/append_same_key_twice_returns_the_same_entry (0.04s)
+    --- PASS: TestStoreConformance/append_and_read_do_not_alias_attrs (0.03s)
+    --- PASS: TestStoreConformance/at_is_stored_and_returned_as_utc (0.04s)
+    --- PASS: TestStoreConformance/read_orders_newest_first (0.03s)
+    --- PASS: TestStoreConformance/read_honors_limit (0.03s)
+    --- PASS: TestStoreConformance/append_axis_out_of_scope_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/invalid_scope_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/validation_wins_over_cancelled_context (0.03s)
+    --- PASS: TestStoreConformance/cancelled_context_wins_over_outage (0.04s)
+    --- PASS: TestStoreConformance/validation_wins_over_outage (0.04s)
+    --- PASS: TestStoreConformance/search_finds_body_substring (0.04s)
+    --- PASS: TestStoreConformance/search_without_match_returns_not_found (0.03s)
+    --- PASS: TestStoreConformance/probe_reports_healthy (0.03s)
+    --- PASS: TestStoreConformance/unavailable_makes_every_operation_report_unavailable (0.04s)
+    --- PASS: TestStoreConformance/not_found_and_unavailable_stay_distinct (0.05s)
+    --- PASS: TestStoreConformance/cancelled_context_is_respected_and_touches_nothing (0.03s)
+    --- PASS: TestStoreConformance/scopes_are_separate_stores (0.04s)
+    --- PASS: TestStoreConformance/get_returns_the_entries_in_the_order_requested (0.04s)
+    --- PASS: TestStoreConformance/get_with_a_missing_id_fails_the_whole_batch (0.04s)
+    --- PASS: TestStoreConformance/get_with_an_empty_batch_is_rejected (0.04s)
+    --- PASS: TestStoreConformance/get_with_a_batch_over_the_ceiling_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/get_on_an_axis_out_of_scope_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/get_validation_wins_over_a_cancelled_context (0.04s)
+    --- PASS: TestStoreConformance/get_on_a_cancelled_context_wins_over_an_outage (0.05s)
+    --- PASS: TestStoreConformance/get_during_an_outage_reports_unavailable (0.05s)
+    --- PASS: TestStoreConformance/get_touches_nothing_on_a_cancelled_context (0.04s)
+PASS
+ok  	github.com/JaviCss/eco/store	1.885s
+

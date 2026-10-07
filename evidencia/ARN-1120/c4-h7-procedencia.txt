@@ -1,0 +1,8 @@
+### go test -count=1 -run TestPromoteKeepsTheProvenanceOfTheSourceRow -v ./store/ ###
+exit: 0
+
+=== RUN   TestPromoteKeepsTheProvenanceOfTheSourceRow
+--- PASS: TestPromoteKeepsTheProvenanceOfTheSourceRow (0.16s)
+PASS
+ok  	github.com/JaviCss/eco/store	0.679s
+

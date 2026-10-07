@@ -1,0 +1,67 @@
+### rg -n 'scanCeiling|scanForPromotion|promotionScanner' -g '*.go' . ###
+exit: 1   (1 = no matches: the internal scan and its ceiling are gone)
+
+
+
+### rg -n 'context.Background()' store/promote.go ###
+exit: 1   (1 = no match: the caller's ctx governs the whole promotion)
+
+
+
+### rg -n 'planPromotion' store/promote.go (the name survives; it no longer scans and it takes ctx) ###
+
+30:func planPromotion(ctx context.Context, source port.Port, ids []string) ([]PromotedTarget, error) {
+61:	plan, err := planPromotion(ctx, source, ids)
+
+### go test -count=1 -run TestPromote -v ./store/ ###
+exit: 0
+
+=== RUN   TestPromoteMatrix
+=== RUN   TestPromoteMatrix/fake
+=== RUN   TestPromoteMatrix/fake/missing_id_fails_the_whole_batch
+=== RUN   TestPromoteMatrix/fake/down_z2_writes_nothing
+=== RUN   TestPromoteMatrix/fake/a_cut_and_a_retry_converge
+=== RUN   TestPromoteMatrix/fake/an_occupied_id_with_another_body_is_refused
+=== RUN   TestPromoteMatrix/store
+=== RUN   TestPromoteMatrix/store/missing_id_fails_the_whole_batch
+=== RUN   TestPromoteMatrix/store/down_z2_writes_nothing
+=== RUN   TestPromoteMatrix/store/a_cut_and_a_retry_converge
+=== RUN   TestPromoteMatrix/store/an_occupied_id_with_another_body_is_refused
+--- PASS: TestPromoteMatrix (1.12s)
+    --- PASS: TestPromoteMatrix/fake (0.56s)
+        --- PASS: TestPromoteMatrix/fake/missing_id_fails_the_whole_batch (0.15s)
+        --- PASS: TestPromoteMatrix/fake/down_z2_writes_nothing (0.14s)
+        --- PASS: TestPromoteMatrix/fake/a_cut_and_a_retry_converge (0.14s)
+        --- PASS: TestPromoteMatrix/fake/an_occupied_id_with_another_body_is_refused (0.13s)
+    --- PASS: TestPromoteMatrix/store (0.56s)
+        --- PASS: TestPromoteMatrix/store/missing_id_fails_the_whole_batch (0.13s)
+        --- PASS: TestPromoteMatrix/store/down_z2_writes_nothing (0.13s)
+        --- PASS: TestPromoteMatrix/store/a_cut_and_a_retry_converge (0.16s)
+        --- PASS: TestPromoteMatrix/store/an_occupied_id_with_another_body_is_refused (0.13s)
+=== RUN   TestPromoteWithAZ3BiggerThanThePortPage
+=== RUN   TestPromoteWithAZ3BiggerThanThePortPage/fake
+=== RUN   TestPromoteWithAZ3BiggerThanThePortPage/store
+--- PASS: TestPromoteWithAZ3BiggerThanThePortPage (0.34s)
+    --- PASS: TestPromoteWithAZ3BiggerThanThePortPage/fake (0.13s)
+    --- PASS: TestPromoteWithAZ3BiggerThanThePortPage/store (0.21s)
+=== RUN   TestPromoteMissingIDFailsTheWholeBatch
+--- PASS: TestPromoteMissingIDFailsTheWholeBatch (0.05s)
+=== RUN   TestPromoteUnavailableTargetWritesNothing
+--- PASS: TestPromoteUnavailableTargetWritesNothing (0.09s)
+=== RUN   TestPromoteRejectsIDOccupiedByAnotherBody
+--- PASS: TestPromoteRejectsIDOccupiedByAnotherBody (0.09s)
+=== RUN   TestPromoteIsIdempotent
+--- PASS: TestPromoteIsIdempotent (0.05s)
+=== RUN   TestPromoteThroughAPortWithAZ3BiggerThanThePage
+--- PASS: TestPromoteThroughAPortWithAZ3BiggerThanThePage (0.05s)
+=== RUN   TestPromoteKeepsTheProvenanceOfTheSourceRow
+--- PASS: TestPromoteKeepsTheProvenanceOfTheSourceRow (0.09s)
+=== RUN   TestPromoteRefusesATargetThatIsNotAStore
+--- PASS: TestPromoteRefusesATargetThatIsNotAStore (0.00s)
+=== RUN   TestPromoteRefusesAnAgentProfileTarget
+--- PASS: TestPromoteRefusesAnAgentProfileTarget (0.09s)
+=== RUN   TestPromoteWithACancelledContextTouchesNothing
+--- PASS: TestPromoteWithACancelledContextTouchesNothing (0.09s)
+PASS
+ok  	github.com/JaviCss/eco/store	2.592s
+

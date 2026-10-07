@@ -1,0 +1,78 @@
+### go/ast: ningun .go con comentarios salvo //go:build ###
+script: C:/Users/Javier Css/.arn/scratch/arn-1120/nocomments.go (fuera del repo)
+command: go run nocomments.go .
+exit: 0
+
+scanned_go_files=52
+comments_outside_build_tags=0
+
+### go list -m all ###
+exit: 0
+
+github.com/JaviCss/eco
+cloud.google.com/go/compute/metadata v0.3.0
+github.com/dustin/go-humanize v1.0.1
+github.com/golang-jwt/jwt/v5 v5.3.1
+github.com/google/go-cmp v0.7.0
+github.com/google/jsonschema-go v0.4.3
+github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3
+github.com/google/uuid v1.6.0
+github.com/hashicorp/golang-lru/v2 v2.0.7
+github.com/mattn/go-isatty v0.0.24
+github.com/modelcontextprotocol/go-sdk v1.8.0
+github.com/ncruces/go-strftime v1.0.0
+github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec
+github.com/segmentio/asm v1.1.3
+github.com/segmentio/encoding v0.5.4
+github.com/yosida95/uritemplate/v3 v3.0.2
+golang.org/x/mod v0.41.0
+golang.org/x/oauth2 v0.35.0
+golang.org/x/sync v0.23.0
+golang.org/x/sys v0.48.0
+golang.org/x/time v0.15.0
+golang.org/x/tools v0.50.0
+modernc.org/cc/v4 v4.29.7
+modernc.org/ccgo/v4 v4.36.1
+modernc.org/fileutil v1.4.0
+modernc.org/gc/v2 v2.6.5
+modernc.org/gc/v3 v3.1.5
+modernc.org/goabi0 v0.2.0
+modernc.org/libc v1.77.1
+modernc.org/mathutil v1.7.1
+modernc.org/memory v1.12.1
+modernc.org/opt v0.2.0
+modernc.org/sortutil v1.2.1
+modernc.org/sqlite v1.60.1
+modernc.org/strutil v1.2.1
+modernc.org/token v1.1.0
+
+### go.mod ###
+
+module github.com/JaviCss/eco
+
+go 1.26.0
+
+require (
+	github.com/modelcontextprotocol/go-sdk v1.8.0
+	golang.org/x/sys v0.48.0
+	modernc.org/sqlite v1.60.1
+)
+
+require (
+	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/google/jsonschema-go v0.4.3 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
+	github.com/ncruces/go-strftime v1.0.0 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/segmentio/asm v1.1.3 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
+	modernc.org/libc v1.77.1 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
+	modernc.org/memory v1.12.1 // indirect
+)
+

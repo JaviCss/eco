@@ -1,0 +1,44 @@
+### control negativo: el cero de Profile es ProfileRuntime ###
+mutacion: en store/profile.go el orden de la const pasa a ProfileRuntime, ProfileAgent, ProfileHuman
+command: go test -count=1 -run TestProfile -v ./store/
+exit: 1  (1 = rojo, como debe)
+
+=== RUN   TestProfileZeroIsTheNarrowOne
+    profile_test.go:23: a Config with no Profile opened as runtime, want agent
+--- FAIL: TestProfileZeroIsTheNarrowOne (0.05s)
+=== RUN   TestProfileRuntimeIsTheOnlyOneThatTouchesR
+--- PASS: TestProfileRuntimeIsTheOnlyOneThatTouchesR (0.05s)
+=== RUN   TestProfileHumanPromotesAndAgentDoesNot
+--- PASS: TestProfileHumanPromotesAndAgentDoesNot (0.09s)
+FAIL
+FAIL	github.com/JaviCss/eco/store	0.700s
+FAIL
+
+### la misma mutacion sobre toda la suite ###
+command: go test -count=1 ./...
+exit: 1
+
+ok  	github.com/JaviCss/eco/cmd/eco	24.406s
+ok  	github.com/JaviCss/eco/httpdoor	1.095s
+ok  	github.com/JaviCss/eco/mcpdoor	0.727s
+ok  	github.com/JaviCss/eco/port	0.568s
+--- FAIL: TestProfileZeroIsTheNarrowOne (0.05s)
+FAIL
+FAIL	github.com/JaviCss/eco/store	25.331s
+FAIL
+
+### verde: la mutacion deshecha, el cero vuelve a ser ProfileAgent ###
+command: go test -count=1 -run 'TestProfile|TestPromoteRefusesAnAgentProfileTarget' -v ./store/
+exit: 0
+
+=== RUN   TestProfileZeroIsTheNarrowOne
+--- PASS: TestProfileZeroIsTheNarrowOne (0.05s)
+=== RUN   TestProfileRuntimeIsTheOnlyOneThatTouchesR
+--- PASS: TestProfileRuntimeIsTheOnlyOneThatTouchesR (0.05s)
+=== RUN   TestProfileHumanPromotesAndAgentDoesNot
+--- PASS: TestProfileHumanPromotesAndAgentDoesNot (0.09s)
+=== RUN   TestPromoteRefusesAnAgentProfileTarget
+--- PASS: TestPromoteRefusesAnAgentProfileTarget (0.10s)
+PASS
+ok  	github.com/JaviCss/eco/store	0.772s
+

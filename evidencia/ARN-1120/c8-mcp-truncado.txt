@@ -1,0 +1,17 @@
+### go test -count=1 -run Truncat -v ./mcpdoor/ ./httpdoor/ ###
+exit: 0
+
+=== RUN   TestReadTruncatesWholeEntriesOnly
+    door_test.go:140: truncated result bytes = 31684
+--- PASS: TestReadTruncatesWholeEntriesOnly (0.00s)
+=== RUN   TestStdioReadTruncates
+    server_test.go:200: tools_call_result_bytes = 31712
+--- PASS: TestStdioReadTruncates (0.01s)
+PASS
+ok  	github.com/JaviCss/eco/mcpdoor	0.641s
+=== RUN   TestReadTruncatesToTheResultCeiling
+    httpdoor_test.go:495: TRUNCATED_BYTES=32699 KEPT=29 OMITTED=471
+--- PASS: TestReadTruncatesToTheResultCeiling (0.24s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.362s
+

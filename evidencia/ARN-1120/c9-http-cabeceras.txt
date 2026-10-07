@@ -1,0 +1,42 @@
+### go test -count=1 -run 'TestNewRejectsNonLoopbackAddrs|TestServeBindsLoopbackV4AndV6|TestHeaderOrder|TestAuthorizationIsRequiredOnEveryRoute|TestUnknownRouteAndMethod' -v ./httpdoor/ ###
+exit: 0
+
+=== RUN   TestNewRejectsNonLoopbackAddrs
+--- PASS: TestNewRejectsNonLoopbackAddrs (0.00s)
+=== RUN   TestServeBindsLoopbackV4AndV6
+--- PASS: TestServeBindsLoopbackV4AndV6 (0.01s)
+=== RUN   TestHeaderOrder
+=== RUN   TestHeaderOrder/host
+=== RUN   TestHeaderOrder/origin
+=== RUN   TestHeaderOrder/content_type
+=== RUN   TestHeaderOrder/charset_is_accepted
+=== RUN   TestHeaderOrder/body_too_large
+--- PASS: TestHeaderOrder (0.56s)
+    --- PASS: TestHeaderOrder/host (0.00s)
+    --- PASS: TestHeaderOrder/origin (0.00s)
+    --- PASS: TestHeaderOrder/content_type (0.00s)
+    --- PASS: TestHeaderOrder/charset_is_accepted (0.00s)
+    --- PASS: TestHeaderOrder/body_too_large (0.00s)
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/read
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/search
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/get
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/append
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/promote
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/probe
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/foreign_token
+=== RUN   TestAuthorizationIsRequiredOnEveryRoute/right_token
+--- PASS: TestAuthorizationIsRequiredOnEveryRoute (0.01s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/read (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/search (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/get (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/append (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/promote (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/probe (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/foreign_token (0.00s)
+    --- PASS: TestAuthorizationIsRequiredOnEveryRoute/right_token (0.00s)
+=== RUN   TestUnknownRouteAndMethod
+--- PASS: TestUnknownRouteAndMethod (0.01s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.701s
+

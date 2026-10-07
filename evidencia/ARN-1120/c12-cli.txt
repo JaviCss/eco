@@ -1,0 +1,13 @@
+### go test -count=1 -run 'TestHelpListsTheTenVerbs|TestCLIExitCodes|TestUnknownVerbIsRejected' -v ./cmd/eco/ ###
+exit: 0
+
+=== RUN   TestHelpListsTheTenVerbs
+--- PASS: TestHelpListsTheTenVerbs (1.50s)
+=== RUN   TestCLIExitCodes
+    cli_test.go:239: promoted attrs: map[origin:cli promoted_from:distilled source_origin:cli]
+--- PASS: TestCLIExitCodes (1.85s)
+=== RUN   TestUnknownVerbIsRejected
+--- PASS: TestUnknownVerbIsRejected (1.52s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	4.989s
+

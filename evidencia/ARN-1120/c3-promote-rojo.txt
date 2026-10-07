@@ -1,0 +1,58 @@
+--- FAIL: TestPromoteMatrix (0.77s)
+    --- FAIL: TestPromoteMatrix/fake (0.39s)
+        --- FAIL: TestPromoteMatrix/fake/a_cut_and_a_retry_converge (0.09s)
+            promote_matrix_test.go:152: the cut landed after 0 appends (err eco: Promote: eco: unavailable: the target is not a *Store: only the Store stamps the reserved attrs of Z2), want 1
+        --- FAIL: TestPromoteMatrix/fake/an_occupied_id_with_another_body_is_refused (0.10s)
+            promote_matrix_test.go:191: promoting onto an occupied id: got eco: Promote: eco: unavailable: the target is not a *Store: only the Store stamps the reserved attrs of Z2, want ErrPromotedConflict
+    --- FAIL: TestPromoteMatrix/store (0.39s)
+        --- FAIL: TestPromoteMatrix/store/a_cut_and_a_retry_converge (0.10s)
+            promote_matrix_test.go:152: the cut landed after 0 appends (err eco: Promote: eco: unavailable: the target is not a *Store: only the Store stamps the reserved attrs of Z2), want 1
+        --- FAIL: TestPromoteMatrix/store/an_occupied_id_with_another_body_is_refused (0.09s)
+            promote_matrix_test.go:187: seed the occupied id: eco: Z2: eco: forbidden: profile agent does not write Z2
+--- FAIL: TestPromoteWithAZ3BiggerThanThePortPage (0.26s)
+    --- FAIL: TestPromoteWithAZ3BiggerThanThePortPage/fake (0.09s)
+        promote_matrix_test.go:226: the failure must name the port page as the reason, got eco: Promote: eco: unavailable: the target is not a *Store: only the Store stamps the reserved attrs of Z2
+    --- FAIL: TestPromoteWithAZ3BiggerThanThePortPage/store (0.17s)
+        promote_matrix_test.go:215: the Store must promote a batch out of a Z3 of 250: eco: Promote: eco: forbidden: profile agent cannot promote into Z2
+--- FAIL: TestPromoteRejectsIDOccupiedByAnotherBody (0.11s)
+    promote_test.go:103: seed the occupied id: eco: Z2: eco: forbidden: profile agent does not write Z2
+--- FAIL: TestPromoteIsIdempotentOnAFake (0.00s)
+    promote_test.go:123: first promotion: eco: Promote: eco: unavailable: the target is not a *Store: only the Store stamps the reserved attrs of Z2
+--- FAIL: TestStoreConformance (1.36s)
+    --- FAIL: TestStoreConformance/append_then_read_returns_the_entry (0.03s)
+        conformance.go:37: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/append_without_id_is_rejected (0.03s)
+        conformance.go:61: Append with an empty ID: got eco: Z2: eco: forbidden: profile agent does not write Z2, want ErrInvalidEntry
+    --- FAIL: TestStoreConformance/append_same_key_twice_stores_one_entry (0.03s)
+        conformance.go:78: Append 1: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/append_same_key_twice_returns_the_same_entry (0.04s)
+        conformance.go:96: first Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/append_and_read_do_not_alias_attrs (0.04s)
+        conformance.go:116: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/at_is_stored_and_returned_as_utc (0.04s)
+        conformance.go:149: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/read_orders_newest_first (0.03s)
+        conformance.go:173: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/read_honors_limit (0.04s)
+        conformance.go:196: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/search_finds_body_substring (0.04s)
+        conformance.go:291: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/search_without_match_returns_not_found (0.03s)
+        conformance.go:307: Append: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/unavailable_makes_every_operation_report_unavailable (0.03s)
+        conformance.go:327: Append before outage: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/cancelled_context_is_respected_and_touches_nothing (0.03s)
+        conformance.go:375: Append before cancel: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/scopes_are_separate_stores (0.04s)
+        conformance.go:403: Append on User: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/get_returns_the_entries_in_the_order_requested (0.03s)
+        conformance.go:430: Append a: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/get_with_a_missing_id_fails_the_whole_batch (0.03s)
+        conformance.go:456: Append a: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/get_during_an_outage_reports_unavailable (0.03s)
+        conformance.go:529: Append before outage: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+    --- FAIL: TestStoreConformance/get_touches_nothing_on_a_cancelled_context (0.03s)
+        conformance.go:550: Append before cancel: got error eco: Z2: eco: forbidden: profile agent does not write Z2, want nil
+FAIL
+FAIL	github.com/JaviCss/eco/store	3.211s
+FAIL

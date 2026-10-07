@@ -1,0 +1,26 @@
+### go test -count=1 -run 'TestWritePortFile|TestReadPortFile|TestPortFileDACL|TestProbeOverThePortFile' -v ./httpdoor/ ./cmd/eco/ ###
+exit: 0
+
+=== RUN   TestPortFileDACLIsOnlyTheCurrentUser
+    acl_windows_test.go:36: CURRENT_USER=DESKTOP-PH3954H\Javier Css SID=S-1-5-21-1275388855-2814374504-2890613708-1000
+--- PASS: TestPortFileDACLIsOnlyTheCurrentUser (0.01s)
+=== RUN   TestWritePortFileIsAtomicAndPrivate
+    httpdoor_test.go:610: ACL=[S-1-5-21-1275388855-2814374504-2890613708-1000]
+    httpdoor_test.go:626: ICACLS_OUTPUT_START
+        C:\Users\JAVIER~1\AppData\Local\Temp\TestWritePortFileIsAtomicAndPrivate2574132155\001\eco.port DESKTOP-PH3954H\Javier Css:(F)
+        
+        Se procesaron correctamente 1 archivos; error al procesar 0 archivos
+        
+        ICACLS_OUTPUT_END
+--- PASS: TestWritePortFileIsAtomicAndPrivate (0.04s)
+=== RUN   TestReadPortFileRejectsGarbage
+--- PASS: TestReadPortFileRejectsGarbage (0.00s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.167s
+=== RUN   TestProbeOverThePortFileValidatesTheNonce
+    cli_test.go:307: probe: {"nonce":"f5da678f4c2a4ce0c7e69e652cb9e06f","pid":17168,"port":52104,"status":"ok"}
+    cli_test.go:324: tampered probe: eco probe: eco: unavailable
+--- PASS: TestProbeOverThePortFileValidatesTheNonce (1.64s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	1.781s
+

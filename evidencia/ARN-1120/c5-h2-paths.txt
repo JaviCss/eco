@@ -1,0 +1,15 @@
+### go test -count=1 -run 'TestSameFile|TestOpenRejects' -v ./store/ ###
+exit: 0
+
+=== RUN   TestOpenRejectsTwoPathsThatAreTheSameBaseByAnotherName
+--- PASS: TestOpenRejectsTwoPathsThatAreTheSameBaseByAnotherName (0.05s)
+=== RUN   TestSameFileTellsTwoDifferentBasesApart
+--- PASS: TestSameFileTellsTwoDifferentBasesApart (0.00s)
+=== RUN   TestOpenRejectsAHardLinkOfTheSameBase
+--- PASS: TestOpenRejectsAHardLinkOfTheSameBase (0.05s)
+=== RUN   TestOpenRejectsTheShortNameOfTheSameBase
+    samefile_windows_test.go:82: long="C:\\Users\\JAVIER~1\\AppData\\Local\\Temp\\TestOpenRejectsTheShortNameOfTheSameBase1503460505\\001\\user-base-with-a-long-name.db" short="C:\\Users\\JAVIER~1\\AppData\\Local\\Temp\\TESTOP~4\\001\\USER-B~1.DB"
+--- PASS: TestOpenRejectsTheShortNameOfTheSameBase (0.04s)
+PASS
+ok  	github.com/JaviCss/eco/store	0.666s
+

@@ -1,0 +1,29 @@
+### go test -count=1 -run 'TestMCPExposesFourToolsOverStdio|TestMCPAppendOnZ2IsRefusedAndChangesNothing|TestMCPEcoProbeAnswersOK' -v ./cmd/eco/ ###
+nota: el cliente del test lanza el binario eco mcp como proceso helper y habla MCP por su stdio
+exit: 0
+
+=== RUN   TestMCPExposesFourToolsOverStdio
+    cli_test.go:120: tools=[eco_append eco_probe eco_read eco_search] tools_list_bytes_compact=1142
+--- PASS: TestMCPExposesFourToolsOverStdio (1.68s)
+=== RUN   TestMCPAppendOnZ2IsRefusedAndChangesNothing
+    cli_test.go:152: is_error=true text=validating "arguments": validating root: validating /properties/axis: enum: Z2 does not equal any of: [Z3 Y X]
+--- PASS: TestMCPAppendOnZ2IsRefusedAndChangesNothing (1.58s)
+=== RUN   TestMCPEcoProbeAnswersOK
+--- PASS: TestMCPEcoProbeAnswersOK (1.59s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	4.963s
+
+### rg -n 'StreamableHTTP|streamableHTTP|NewStreamableHTTPHandler|StreamableHTTPHandler' mcpdoor/ cmd/eco/ ###
+exit: 0   (1 = no match: el transporte HTTP streamable del SDK no esta registrado)
+
+mcpdoor/server_test.go:155:	for _, banned := range []string{"promote", `"get"`, "Manifest", "streamable", "StreamableHTTP"} {
+
+### rg -n 'StreamableHTTP|streamableHTTP|StreamableHTTPHandler' -g '!*_test.go' mcpdoor/ cmd/eco/ ###
+exit: 1   (1 = no match en codigo de produccion: el transporte HTTP streamable del SDK no esta registrado)
+
+
+
+### la unica aparicion en todo mcpdoor/ + cmd/eco/ es la asercion negativa del test ###
+
+mcpdoor/server_test.go:155:	for _, banned := range []string{"promote", `"get"`, "Manifest", "streamable", "StreamableHTTP"} {
+
