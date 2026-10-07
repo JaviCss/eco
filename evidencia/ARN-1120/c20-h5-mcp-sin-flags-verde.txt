@@ -1,0 +1,8 @@
+ARN-1120 ronda 2 - VERDE
+comando: go test ./cmd/eco/ -run 'TestMCPWithoutBasesIsAUsageError' -count=1 -v
+=====================================================================
+=== RUN   TestMCPWithoutBasesIsAUsageError
+    cli_test.go:99: MCP_WITHOUT_BASES_EXIT=2 OUT=eco mcp: --user-db and --project-db are required
+--- PASS: TestMCPWithoutBasesIsAUsageError (1.70s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	1.805s

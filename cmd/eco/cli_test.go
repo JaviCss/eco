@@ -87,6 +87,18 @@ func TestHelpListsTheTenVerbs(t *testing.T) {
 	}
 }
 
+func TestMCPWithoutBasesIsAUsageError(t *testing.T) {
+	binary := buildEco(t)
+	out, code := run(t, binary, "mcp")
+	if code != exitUsage {
+		t.Fatalf("mcp without --user-db and --project-db exited %d, want %d:\n%s", code, exitUsage, out)
+	}
+	if !strings.Contains(out, "--user-db") {
+		t.Fatalf("the refusal does not name the missing flags:\n%s", out)
+	}
+	t.Logf("MCP_WITHOUT_BASES_EXIT=%d OUT=%s", code, strings.TrimSpace(out))
+}
+
 func TestMCPExposesFourToolsOverStdio(t *testing.T) {
 	binary := buildEco(t)
 	dir := t.TempDir()

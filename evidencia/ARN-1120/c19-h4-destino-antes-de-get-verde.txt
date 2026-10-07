@@ -1,0 +1,10 @@
+ARN-1120 ronda 2 - VERDE
+comando: go test ./httpdoor/ -run 'TestPromoteIntoAFakeIsUnavailable|TestPromoteFromTheFakeIntoAProfileHumanStore' -count=1 -v
+=====================================================================
+=== RUN   TestPromoteFromTheFakeIntoAProfileHumanStore
+    httpdoor_test.go:558: PROMOTED=promoted:z3-1
+--- PASS: TestPromoteFromTheFakeIntoAProfileHumanStore (0.06s)
+=== RUN   TestPromoteIntoAFakeIsUnavailable
+--- PASS: TestPromoteIntoAFakeIsUnavailable (0.01s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.170s

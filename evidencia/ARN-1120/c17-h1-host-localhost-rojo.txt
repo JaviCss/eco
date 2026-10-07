@@ -1,0 +1,20 @@
+ARN-1120 ronda 2 - ROJO contra 11cb303 (HEAD = 11cb303, sin los arreglos de la ronda 2)
+comando: go test ./httpdoor/ -run 'TestHeaderOrder' -count=1 -v
+=====================================================================
+=== RUN   TestHeaderOrder
+=== RUN   TestHeaderOrder/host
+    httpdoor_test.go:212: Host localhost:9 against a listener on another port: got 200, want 421 ({"entries":[],"truncated":false,"omitted":0}
+        )
+=== RUN   TestHeaderOrder/origin
+=== RUN   TestHeaderOrder/content_type
+=== RUN   TestHeaderOrder/charset_is_accepted
+=== RUN   TestHeaderOrder/body_too_large
+--- FAIL: TestHeaderOrder (0.55s)
+    --- FAIL: TestHeaderOrder/host (0.00s)
+    --- PASS: TestHeaderOrder/origin (0.00s)
+    --- PASS: TestHeaderOrder/content_type (0.00s)
+    --- PASS: TestHeaderOrder/charset_is_accepted (0.00s)
+    --- PASS: TestHeaderOrder/body_too_large (0.00s)
+FAIL
+FAIL	github.com/JaviCss/eco/httpdoor	0.654s
+FAIL

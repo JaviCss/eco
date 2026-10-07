@@ -83,3 +83,47 @@ reporto al escribir `mcpdoor/` y `httpdoor/`).
 7. **La suite corre en Windows** (GOOS=windows/amd64). `acl_other.go` y
    `parent_other.go` compilan pero no se ejercitaron: sin una maquina POSIX
    no se afirma nada sobre ellos.
+---
+
+# ARN-1120 ronda 2 — el gate de la ronda 1 dio FAIL con un bloqueante (B1)
+
+HEAD de partida: `11cb303`, misma rama `ARN-1120` de `../eco`. Los cinco
+arreglos de la "Direccion de ronda 2" con su rojo por comportamiento antes del
+verde. `git commit` sigue denegado para E2: el trabajo queda **staged** y los
+mensajes estan en `COMMITS.md`.
+
+| # | Que se esperaba | Que salio | Evidencia |
+|---|---|---|---|
+| 16 (B1) | el lote entero de Z2 en **una sola transaccion**; un `ctx` cancelado a mitad del lote devuelve `context.Canceled` **sin envolver** y Z2 con cero filas; rojo contra `11cb303` | contra `11cb303` el lote dejaba **12 filas** en Z2 cuando fallaba en la fila trece, y la cancelacion salia como `eco: Append: eco: unavailable: context canceled` con `errors.Is` falso (los dos casos, 15 ms y 40 ms). Ahora `store.writePromotedBatch` abre **una** transaccion (`db.BeginTx` con el `_txlock=immediate` del DSN, el mismo BEGIN IMMEDIATE que usa `Append`), inserta las N filas, las relee y hace `Commit` al final: `TestPromoteIntoZ2IsAllOrNothing` deja **0** filas y los dos casos de cancelacion dan `errors.Is(err, context.Canceled)` con **0** filas | `c16-b1-lote-una-transaccion-rojo.txt`, `c16-b1-lote-una-transaccion-verde.txt` |
+| 17 (H1) | `Host: localhost:<cualquier puerto>` deja de pasar el atajo de `hostAllowed`; `Host: localhost:9` -> 421 | contra `11cb303` el mismo `Host` recibia **200** con el cuerpo de la lectura; ahora `hostAllowed` solo compara contra la lista derivada del listener y `localhost:9` da **421** `host mismatch` | `c17-h1-host-localhost-rojo.txt`, `c17-h1-host-localhost-verde.txt` |
+| 18 (H2) | la DACL del usuario va sobre el temporal **vacio**, antes del primer `Write` | contra `11cb303`, mientras se escribia el token el temporal llevaba **cuatro** ACE (`...-1004`, `...-174881868`, `SY`, `BA`, `...-1000`): la ACL heredada del directorio. Ahora el archivo **nace** con la DACL: `windows.CreateFile` con `SECURITY_ATTRIBUTOS` (`httpdoor.createPrivateTemp`) y no hay ventana entre crear y proteger. Con el token de 8 MiB, el observador que mira el temporal mientras se escribe ve **un solo ACE**, el SID del usuario | `c18-h2-dacl-antes-del-write-rojo.txt`, `c18-h2-dacl-antes-del-write-verde.txt` |
+| 19 (H4) | el tipo y el perfil del destino se chequean **antes** de `source.Get`; el test HTTP deja de aceptar "503 o 404" y exige 503 | contra `11cb303` un destino `Fake` con id ausente daba **404** `not found` (el `Get` corria primero); ahora `Promote` resuelve destino y perfil antes de planificar, y el test exige **503** `unavailable` | `c19-h4-destino-antes-de-get-rojo.txt`, `c19-h4-destino-antes-de-get-verde.txt` |
+| 20 (H5) | `eco mcp` sin `--user-db`/`--project-db` sale **2** | contra `11cb303` salia **6** con `eco open: eco: invalid entry`; ahora `mcpVerb` rechaza los flags faltantes con `refuse` y sale **2** con `eco mcp: --user-db and --project-db are required` | `c20-h5-mcp-sin-flags-rojo.txt`, `c20-h5-mcp-sin-flags-verde.txt` |
+| 21 | suite entera `-race` verde, sin regresion | `go build ./...`, `go vet ./...` y `go test -race -count=1 ./...` en 0; los cinco paquetes en verde (`store` 164.8 s) | `c21-suite-race-verde.txt` |
+| 13 y 14 | los criterios de fugas y de comentarios siguen sostenidos | `go list -deps ./... \| rg '^net'` igual; `net/http` y el SDK solo en `cmd/eco`, `httpdoor/`, `mcpdoor/`; contador AST: **0** comentarios fuera de `//go:build` en 46 archivos; `port/` sin cambios de la ronda 2; `promote.go` sin `scanCeiling`, `scanForPromotion` ni `context.Background` | `c22-verificaciones.txt` |
+
+## Invariante que B1 compra, y por que un lote parcial es imposible
+
+Una transaccion por lote sobre `user.db`: `BEGIN IMMEDIATE` (el `_txlock=immediate`
+del DSN del `Store`, el mismo que usa `Append`), los N `INSERT` de `sqlInsert`
+(`ON CONFLICT DO NOTHING`), la relectura de cada fila con `sqlGet` **dentro** de la
+transaccion para comparar el cuerpo, y un unico `Commit` al final. Cualquier
+salida —error de `checkEntry`, conflicto de cuerpo, `SQLITE_BUSY` que agota los
+reintentos, `ctx` cancelado— pasa por `tx.Rollback()`. Como no hay `COMMIT`
+intermedio, el archivo de Z2 no puede quedar con un prefijo del lote: lo que se
+commitio es el lote entero o nada. `withRetry` reintenta el **lote entero** desde
+la primera fila, nunca desde el punto en que se quedo.
+
+El `ctx` del llamador gobierna todo: si se cancela mientras la transaccion esta
+abierta, `Rollback` corre sobre la conexion y el lote no deja filas. Para que
+`errors.Is(err, context.Canceled)` sea verdadero, `Promote` devuelve `ctx.Err()`
+sin envolver en cuanto el contexto esta hecho (`unwrapContext`), y `withRetry`
+hace lo mismo cuando la operacion que fallo fue cancelada y no un `BUSY`.
+
+## Lo que la ronda 2 **no** toca
+
+Los hallazgos H3 (una DACL por SID no le niegue la lectura a un proceso de
+integridad baja del mismo usuario), H6, H7, H8, H9, H10 y H11 quedan como los
+dejo el gate: H3 ya fue enviado por el arquitecto a la card del tier
+AppContainer del modulo 5, y el resto no era bloqueante. El cambio de la ronda 2
+es cinco arreglos sobre `11cb303`, sin tocar `port/`, `mcpdoor/` ni los schemas.

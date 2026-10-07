@@ -1,0 +1,21 @@
+ARN-1120 ronda 2 - VERDE
+comando: go test ./httpdoor/ -run 'TestPortFileDACL|TestWritePortFileIsAtomicAndPrivate' -count=1 -v
+=====================================================================
+=== RUN   TestPortFileDACLIsOnlyTheCurrentUser
+    acl_windows_test.go:37: CURRENT_USER=DESKTOP-PH3954H\Javier Css SID=S-1-5-21-1275388855-2814374504-2890613708-1000
+--- PASS: TestPortFileDACLIsOnlyTheCurrentUser (0.01s)
+=== RUN   TestPortFileDACLIsAppliedBeforeTheFirstWrite
+    acl_windows_test.go:53: CURRENT_USER=DESKTOP-PH3954H\Javier Css SID=S-1-5-21-1275388855-2814374504-2890613708-1000
+    acl_windows_test.go:96: TEMPORARY_ACL_WHILE_WRITING=[S-1-5-21-1275388855-2814374504-2890613708-1000]
+--- PASS: TestPortFileDACLIsAppliedBeforeTheFirstWrite (0.03s)
+=== RUN   TestWritePortFileIsAtomicAndPrivate
+    httpdoor_test.go:618: ACL=[S-1-5-21-1275388855-2814374504-2890613708-1000]
+    httpdoor_test.go:634: ICACLS_OUTPUT_START
+        C:\Users\JAVIER~1\AppData\Local\Temp\TestWritePortFileIsAtomicAndPrivate1263039411\001\eco.port DESKTOP-PH3954H\Javier Css:(F)
+        
+        Se procesaron correctamente 1 archivos; error al procesar 0 archivos
+        
+        ICACLS_OUTPUT_END
+--- PASS: TestWritePortFileIsAtomicAndPrivate (0.03s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.179s

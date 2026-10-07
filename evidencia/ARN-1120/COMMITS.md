@@ -149,3 +149,74 @@ la salida cruda de cada corrida.
 ```
 
 Archivos: `go.mod`, `go.sum`, `evidencia/ARN-1120/`.
+---
+
+# Ronda 2 — los cinco arreglos del gate de la ronda 1
+
+En orden, sobre `11cb303`.
+
+## 7 — el lote de Z2 entra en una sola transaccion y el ctx sale sin envolver
+
+```
+fix: el lote de Z2 entra en una sola transaccion y el ctx sale sin envolver
+
+store.Promote deja de escribir fila por fila. Convierte el plan en un lote y lo
+pasa a appendPromotedBatch, que abre una sola transaccion sobre user.db (el
+BEGIN IMMEDIATE que ya usa Append), inserta las N filas, las relee para comparar
+el cuerpo y hace Commit al final. Cualquier fallo pasa por Rollback, asi que un
+lote parcial en Z2 es imposible y withRetry reintenta el lote entero.
+
+Promote resuelve el tipo y el perfil del destino antes de source.Get: un
+destino que no es *Store o que no puede promover se rechaza sin leer el origen.
+
+Cuando el contexto esta hecho, Promote y withRetry devuelven ctx.Err() sin
+envolver, asi que errors.Is(err, context.Canceled) es verdadero en vez del
+eco: unavailable: context canceled de antes.
+
+La interfaz promoter cambia appendPromoted por appendPromotedBatch; el doble de
+la matriz ahora corta la transaccion entera y comprueba que no queda nada.
+
+Tests: TestPromoteIntoZ2IsAllOrNothing (un cuerpo de 64 KiB en la fila trece
+deja 0 filas en Z2) y TestPromoteCancelledDuringTheBatchLeavesNoRows (200 ids,
+cancelacion a los 15 ms y a los 40 ms, errors.Is(context.Canceled) y 0 filas).
+```
+
+## 8 — el Host deja de admitir el atajo de localhost
+
+```
+fix: hostAllowed solo acepta el Host del listener
+
+Se va el atajo que devolvia true para cualquier localhost con cualquier puerto
+sin mirar el listener. Ahora la comparacion es solo contra la lista derivada de
+la direccion y el puerto reales, asi que Host: localhost:9 contra un listener en
+otro puerto responde 421.
+```
+
+## 9 — el temporal del archivo de puerto nace con la DACL puesta
+
+```
+fix: el temporal del archivo de puerto nace con la DACL del usuario
+
+La DACL se aplicaba despues de escribir el token: entre CreateTemp y
+SetNamedSecurityInfo el archivo llevaba la ACL heredada del directorio, que en
+una carpeta con Sys, BA y un SID mas habilita a tres lectores del token.
+
+Ahora el archivo nace protegido: createPrivateTemp abre con CreateFile y
+SECURITY_ATTRIBUTOS (D:P(A;;FA;;;<SID del usuario>)) antes de que exista
+contenido, y en los otros SO con CreateTemp mas chmod 0600 antes de escribir.
+La escritura, el fsync y el rename por el que pasaba antes no cambian.
+
+Test: TestPortFileDACLIsAppliedBeforeTheFirstWrite, con un token de 8 MiB para
+que la ventana sea observable, mira el temporal mientras se escribe y exige un
+solo ACE.
+```
+
+## 10 — la CLI trata la falta de flags de eco mcp como uso
+
+```
+fix: eco mcp sin --user-db y --project-db sale 2
+
+mcpVerb exige las dos bases igual que el resto de los verbos: sin ellas refuse
+sale 2 con el nombre del flag que falta, en vez de 6 por un ErrInvalidEntry del
+Store. serve ya lo hacia.
+```

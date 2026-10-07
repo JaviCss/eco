@@ -1,0 +1,15 @@
+ARN-1120 ronda 2 - suite completa
+HEAD = 11cb303 + los cinco arreglos de la ronda 2 (staged, sin commit: commit denegado a E2)
+=====================================================================
+--- go build ./... ---
+(sin salida, exit 0)
+--- go vet ./... ---
+(sin salida, exit 0)
+--- go test -race -count=1 ./... ---
+ok  	github.com/JaviCss/eco/cmd/eco	37.109s
+ok  	github.com/JaviCss/eco/httpdoor	4.968s
+ok  	github.com/JaviCss/eco/mcpdoor	2.752s
+ok  	github.com/JaviCss/eco/port	1.249s
+ok  	github.com/JaviCss/eco/store	164.803s
+
+exit de go test -race -count=1 ./... = 0

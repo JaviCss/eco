@@ -1,0 +1,13 @@
+ARN-1120 ronda 2 - VERDE
+comando: go test ./store/ -run 'TestPromoteIntoZ2IsAllOrNothing|TestPromoteCancelledDuringTheBatchLeavesNoRows' -count=1 -v
+=====================================================================
+=== RUN   TestPromoteIntoZ2IsAllOrNothing
+--- PASS: TestPromoteIntoZ2IsAllOrNothing (0.05s)
+=== RUN   TestPromoteCancelledDuringTheBatchLeavesNoRows
+=== RUN   TestPromoteCancelledDuringTheBatchLeavesNoRows/15ms
+=== RUN   TestPromoteCancelledDuringTheBatchLeavesNoRows/40ms
+--- PASS: TestPromoteCancelledDuringTheBatchLeavesNoRows (0.18s)
+    --- PASS: TestPromoteCancelledDuringTheBatchLeavesNoRows/15ms (0.07s)
+    --- PASS: TestPromoteCancelledDuringTheBatchLeavesNoRows/40ms (0.10s)
+PASS
+ok  	github.com/JaviCss/eco/store	0.789s

@@ -1,0 +1,17 @@
+ARN-1120 ronda 2 - ROJO contra 11cb303 (HEAD = 11cb303, sin los arreglos de la ronda 2)
+comando: go test ./store/ -run 'TestPromoteIntoZ2IsAllOrNothing|TestPromoteCancelledDuringTheBatchLeavesNoRows' -count=1 -v
+=====================================================================
+=== RUN   TestPromoteIntoZ2IsAllOrNothing
+    promote_test.go:561: a batch that failed on its thirteenth row left 12 entries in Z2, want 0: [{promoted:z3-11 Z2 user 2026-10-07 16:40:26.1687778 +0000 UTC body of z3-11 map[origin:runtime promoted_from:z3-11 source_origin:]} {promoted:z3-08 Z2 user 2026-10-07 16:40:26.1682101 +0000 UTC body of z3-08 map[origin:runtime promoted_from:z3-08 source_origin:]} {promoted:z3-09 Z2 user 2026-10-07 16:40:26.1682101 +0000 UTC body of z3-09 map[origin:runtime promoted_from:z3-09 source_origin:]} {promoted:z3-10 Z2 user 2026-10-07 16:40:26.1682101 +0000 UTC body of z3-10 map[origin:runtime promoted_from:z3-10 source_origin:]} {promoted:z3-05 Z2 user 2026-10-07 16:40:26.1676854 +0000 UTC body of z3-05 map[origin:runtime promoted_from:z3-05 source_origin:]} {promoted:z3-06 Z2 user 2026-10-07 16:40:26.1676854 +0000 UTC body of z3-06 map[origin:runtime promoted_from:z3-06 source_origin:]} {promoted:z3-07 Z2 user 2026-10-07 16:40:26.1676854 +0000 UTC body of z3-07 map[origin:runtime promoted_from:z3-07 source_origin:]} {promoted:z3-02 Z2 user 2026-10-07 16:40:26.1671673 +0000 UTC body of z3-02 map[origin:runtime promoted_from:z3-02 source_origin:]} {promoted:z3-03 Z2 user 2026-10-07 16:40:26.1671673 +0000 UTC body of z3-03 map[origin:runtime promoted_from:z3-03 source_origin:]} {promoted:z3-04 Z2 user 2026-10-07 16:40:26.1671673 +0000 UTC body of z3-04 map[origin:runtime promoted_from:z3-04 source_origin:]} {promoted:z3-00 Z2 user 2026-10-07 16:40:26.1666417 +0000 UTC body of z3-00 map[origin:runtime promoted_from:z3-00 source_origin:]} {promoted:z3-01 Z2 user 2026-10-07 16:40:26.1666417 +0000 UTC body of z3-01 map[origin:runtime promoted_from:z3-01 source_origin:]}]
+--- FAIL: TestPromoteIntoZ2IsAllOrNothing (0.05s)
+=== RUN   TestPromoteCancelledDuringTheBatchLeavesNoRows
+=== RUN   TestPromoteCancelledDuringTheBatchLeavesNoRows/15ms
+    promote_test.go:626: Promote cancelled 15ms into the batch: got eco: Append: eco: unavailable: context canceled, want context.Canceled
+=== RUN   TestPromoteCancelledDuringTheBatchLeavesNoRows/40ms
+    promote_test.go:626: Promote cancelled 40ms into the batch: got eco: Append: eco: unavailable: context canceled, want context.Canceled
+--- FAIL: TestPromoteCancelledDuringTheBatchLeavesNoRows (0.18s)
+    --- FAIL: TestPromoteCancelledDuringTheBatchLeavesNoRows/15ms (0.08s)
+    --- FAIL: TestPromoteCancelledDuringTheBatchLeavesNoRows/40ms (0.11s)
+FAIL
+FAIL	github.com/JaviCss/eco/store	0.763s
+FAIL

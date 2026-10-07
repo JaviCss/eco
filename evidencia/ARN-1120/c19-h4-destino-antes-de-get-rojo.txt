@@ -1,0 +1,10 @@
+ARN-1120 ronda 2 - ROJO contra 11cb303 (HEAD = 11cb303, sin los arreglos de la ronda 2)
+comando: go test ./httpdoor/ -run 'TestPromoteIntoAFakeIsUnavailable' -count=1 -v
+=====================================================================
+=== RUN   TestPromoteIntoAFakeIsUnavailable
+    httpdoor_test.go:565: promote into a fake with an absent id: got 404, want 503 ({"error":"not found"}
+        )
+--- FAIL: TestPromoteIntoAFakeIsUnavailable (0.01s)
+FAIL
+FAIL	github.com/JaviCss/eco/httpdoor	0.109s
+FAIL

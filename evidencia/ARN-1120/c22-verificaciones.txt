@@ -1,0 +1,57 @@
+ARN-1120 ronda 2 - verificaciones de criterios que la ronda 1 sostuvo y que los arreglos tocan
+HEAD = 11cb303 + los cinco arreglos (staged)
+=====================================================================
+
+--- c14: contador AST de comentarios (poc/c9-contador-comentarios), port store httpdoor mcpdoor cmd ---
+go.exe : main module (github.com/JaviCss/eco) does not contain package 
+github.com/JaviCss/eco/poc/c9-contador-comentarios
+En lÃ­nea: 2 CarÃ¡cter: 7
++ $c = (& go run ./poc/c9-contador-comentarios ./store ./port ./httpdoo ...
++       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (main module (gi...dor-comentarios:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+exit del contador = 1 (0 = cero comentarios fuera de //go:build)
+
+--- c13: go list -deps | rg '^net' ---
+net/netip
+net
+net/url
+net/textproto
+net/http/httptrace
+net/http/internal
+net/http/internal/ascii
+net/http/internal/httpcommon
+net/http
+
+--- c13: net/http y el SDK solo en cmd/eco, httpdoor, mcpdoor ---
+cli_test.go:18
+door.go:9
+door_test.go:12
+httpdoor.go:12
+httpdoor_test.go:9
+main.go:12
+serve.go:9
+server.go:8
+server_test.go:15
+
+--- c3: scanCeiling / scanForPromotion / context.Background en promote.go ---
+
+(vacio arriba = ninguno)
+
+--- c2: git diff main -- port/ (solo Get, ErrForbidden y sus tests) ---
+port/conformance.go | 135 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ port/fake.go        |  52 ++++++++++++++++++++
+ port/port.go        |   4 ++
+ 3 files changed, 191 insertions(+)
+
+--- ronda 2: el lote de Z2 es una sola transaccion (BEGIN IMMEDIATE del Store) ---
+store/promote.go:138: out, err := s.writePromotedBatch(ctx, db, rows, entries, scope, axis)
+store/promote.go:156: func (s *Store) writePromotedBatch(ctx context.Context, db *sql.DB, rows [][]any, entries []port.Entry, scope port.Scope, axis port.Axis) ([]port.Entry, error) {
+store/promote.go:157: tx, err := db.BeginTx(ctx, nil)
+store/promote.go:164: tx.Rollback()
+store/promote.go:169: tx.Rollback()
+store/promote.go:173: tx.Rollback()
+store/promote.go:178: if err := tx.Commit(); err != nil {
+store/promote.go:179: tx.Rollback()

@@ -1,0 +1,17 @@
+ARN-1120 ronda 2 - VERDE
+comando: go test ./httpdoor/ -run 'TestHeaderOrder' -count=1 -v
+=====================================================================
+=== RUN   TestHeaderOrder
+=== RUN   TestHeaderOrder/host
+=== RUN   TestHeaderOrder/origin
+=== RUN   TestHeaderOrder/content_type
+=== RUN   TestHeaderOrder/charset_is_accepted
+=== RUN   TestHeaderOrder/body_too_large
+--- PASS: TestHeaderOrder (0.56s)
+    --- PASS: TestHeaderOrder/host (0.00s)
+    --- PASS: TestHeaderOrder/origin (0.00s)
+    --- PASS: TestHeaderOrder/content_type (0.00s)
+    --- PASS: TestHeaderOrder/charset_is_accepted (0.00s)
+    --- PASS: TestHeaderOrder/body_too_large (0.00s)
+PASS
+ok  	github.com/JaviCss/eco/httpdoor	0.705s

@@ -1,0 +1,10 @@
+ARN-1120 ronda 2 - ROJO contra 11cb303 (HEAD = 11cb303, sin los arreglos de la ronda 2)
+comando: go test ./cmd/eco/ -run 'TestMCPWithoutBasesIsAUsageError' -count=1 -v
+=====================================================================
+=== RUN   TestMCPWithoutBasesIsAUsageError
+    cli_test.go:94: mcp without --user-db and --project-db exited 6, want 2:
+        eco open: eco: invalid entry
+--- FAIL: TestMCPWithoutBasesIsAUsageError (1.56s)
+FAIL
+FAIL	github.com/JaviCss/eco/cmd/eco	1.662s
+FAIL
