@@ -1,0 +1,4 @@
+            busy_test.go:103: HELPER pid=36396 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=1239 total_ms=6937 id_base=36396000000 first_busy=""
+            busy_test.go:103: HELPER pid=7940 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=935 total_ms=6934 id_base=7940000000 first_busy=""
+--- PASS: TestStoreSurvivesTwoConcurrentProcesses (8.11s)
+ok  	github.com/JaviCss/eco/store	8.627s
