@@ -1,0 +1,13 @@
+# ARN-1140 · HR1: el test nuevo contra Promote con una transaccion por fila (mutacion)
+# fecha: 2026-10-07T15:00:13.9713073-03:00
+# go: go version go1.26.1 windows/amd64
+# mutacion: writePromotedBatch abre y commitea una transaccion por fila (el defecto que HR1 describe)
+# comando: go test -run TestPromoteCancelledInsideTheBatchRollsBackEveryRow -count=1 ./store/
+--- FAIL: TestPromoteCancelledInsideTheBatchRollsBackEveryRow (0.08s)
+    promote_cancel_test.go:205: a batch cancelled with the transaction open left 2 entries in Z2, want 0: [{promoted:z3-000 Z2 user 2026-10-07 18:00:15.4297653 +0000 UTC body of z3-000 map[origin:runtime promoted_from:z3-000 source_origin:]} {promoted:z3-001 Z2 user 2026-10-07 18:00:15.4297653 +0000 UTC body of z3-001 map[origin:runtime promoted_from:z3-001 source_origin:]}]
+FAIL
+FAIL	github.com/JaviCss/eco/store	0.556s
+FAIL
+
+exit=1
+# esperado: FAIL. El rojo esta en la ultima asercion: quedan filas en Z2.

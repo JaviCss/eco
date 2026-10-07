@@ -1,0 +1,76 @@
+# ARN-1140 · el error de los nombres de plataforma, con la salida real
+
+Fecha: 2026-10-07. Es la corrida que **falló** antes de corregir los nombres
+de los paquetes de plataforma, y queda pegada porque es el control
+negativo del defecto: con los nombres de Go en el `name` y en el campo
+`os`/`cpu`, npm no instala nada.
+
+Lo que había (el nombre del paquete, el `os` y el `cpu`, con los nombres
+de Go en vez de los de Node):
+
+```json
+{
+  "name": "@javicss/eco-win32-x64",
+  "version": "0.1.0",
+  "os": [ "windows" ],
+  "cpu": [ "amd64" ],
+  "bin": { "eco-win32-x64": "bin/eco.exe" },
+  "files": [ "bin/eco.exe", "README.md" ]
+}
+```
+
+## La corrida
+
+```
+$ npm init -y
+exit=0
+
+$ npm install <principal.tgz> <win32-x64.tgz>
+npm error code EBADPLATFORM
+npm error notsup Unsupported platform for @javicss/eco-win32-x64@0.1.0: wanted {"os":"windows","cpu":"amd64"} (current: {"os":"win32","cpu":"x64"})
+npm error notsup Valid os:   windows
+npm error notsup Actual os:  win32
+npm error notsup Valid cpu:  amd64
+npm error notsup Actual cpu: x64
+npm error A complete log of this run can be found in: ..._debug-0.log
+exit=1
+
+$ npx eco --version
+npm warn exec The following package was not found and will be installed: eco@1.1.0-rc-3
+Eco version 1.1.0-rc-3
+exit=0
+```
+
+Dos cosas se ven ahí y las dos importan:
+
+1. **`os`/`cpu` se comparan contra `process.platform` y `process.arch`.**
+   Node da `win32` y `x64`; Go da `windows` y `amd64`. El paquete se
+   declaraba incompatible **con la máquina que lo iba a usar**, y npm
+   aborta la instalación entera (exit 1, sin árbol).
+2. El `npx` sin paquete local fue **a la red** a buscar el paquete `eco`
+   que existe en el registry de npm (otro proyecto, version
+   `1.1.0-rc-3`) y ejecutó ese. Por eso toda la evidencia de la
+   instalacion usa `--no-install` o invoca el launcher por `node`, nunca
+   un `npx` a secas.
+
+## La corrección
+
+`tools/release/packages.go` ahora lleva los dos juegos de valores por
+plataforma, y el `name` del paquete, el campo `os` y el campo `cpu` usan
+los de Node:
+
+```go
+{
+    Name: mainPackageName + "-win32-x64", GoOS: "windows", GoArch: "amd64",
+    NodeOS: "win32", NodeArch: "x64", Binary: "eco.exe", BinName: "eco-win32-x64",
+},
+```
+
+El build del binario sigue hablando Go (`windows`/`amd64`); solo el
+empaquetado habla Node. `TestPlatformNamesAndManifestsUseTheNodeValuesNotTheGoOnes`
+en `tools/release/release_test.go` falla si alguien vuelve a mezclarlos.
+
+## La corrida después de corregir
+
+`c7-npm-positiva.txt`: `added 2 packages`, `npm ls --all` sin `invalid` ni
+`corrupted`, `eco v0.1.0+dirty (aa0141f52b0d, dirty)` por el launcher.

@@ -1,0 +1,67 @@
+# ARN-1140 · criterio 9 (resto): consumidor de juguete y version inexistente
+# fecha: 2026-10-07T15:19:52.7480981-03:00
+# go: go version go1.26.1 windows/amd64
+# GOPROXY=file:///C:/Users/Javier Css/.arn/scratch/ARN-1140/proxy,file:///C:/Users/Javier Css/go/pkg/mod/cache/download,off   GOSUMDB=off   GOFLAGS=-mod=mod
+
+=== el consumidor de juguete (modulo SIN replace)
+--- go.mod
+  module example.com/consumidor
+  
+  go 1.26.0
+--- main.go
+  package main
+  
+  import (
+  	"fmt"
+  
+  	"github.com/JaviCss/eco/port"
+  )
+  
+  func main() {
+  	for _, axis := range []port.Axis{port.AxisZ2, port.AxisZ3, port.AxisY} {
+  		scope, ok := port.ScopeOfAxis(axis)
+  		fmt.Printf("%s vive en el scope %s (ok=%t)\n", axis, scope, ok)
+  	}
+  	entry := port.Entry{ID: "juego-1", Body: "hola"}
+  	fmt.Printf("id por defecto de %s/%s: %s\n", port.ScopeUser, port.AxisZ2, port.DefaultID(port.ScopeUser, port.AxisZ2, entry.Body))
+  }
+replace en el go.mod: False
+
+=== go get github.com/JaviCss/eco@v0.1.0
+go: added github.com/JaviCss/eco v0.1.0
+exit=0
+--- go.mod despues
+  module example.com/consumidor
+  
+  go 1.26.0
+  
+  require github.com/JaviCss/eco v0.1.0 // indirect
+
+=== go build ./...   (compila contra port)
+exit=0
+--- el binario del consumidor, que usa port de verdad
+build exit=0
+Z2 vive en el scope user (ok=true)
+Z3 vive en el scope project (ok=true)
+Y vive en el scope project (ok=true)
+id por defecto de user/Z2: f403d2203a127db06304dd2564f0edcbb039ffba1727458caa96ede82607a8a4
+exit=0
+--- go.sum generado
+  github.com/JaviCss/eco v0.1.0 h1:9Ne+n1OhZn0SJgMG7494NaWomuzoVQkz8wGVS0H1LUw=
+  github.com/JaviCss/eco v0.1.0/go.mod h1:KNXpNOV2LWk/IIX3wcGQjJ5o5sVLj6PKvdtjI1fV+f8=
+
+=== CONTROL NEGATIVO: go get github.com/JaviCss/eco@v0.0.9 (no existe en el proxy)
+go.exe : go: github.com/JaviCss/eco@v0.0.9: module lookup disabled by GOPROXY=off
+En línea: 43 Carácter: 8
++ $neg = & go get github.com/JaviCss/eco@v0.0.9 2>&1 | Out-String
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (go: github.com/... by GOPROXY=off:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+exit=1
+el mensaje dice 'unknown revision': False
+--- go.mod del consumidor, que el fallo no toco
+  module example.com/consumidor
+  
+  go 1.26.0
+  
+  require github.com/JaviCss/eco v0.1.0

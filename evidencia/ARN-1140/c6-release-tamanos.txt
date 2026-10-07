@@ -1,0 +1,196 @@
+# ARN-1140 · criterio 6: que dejo el release, con los tamanos pegados
+# fecha: 2026-10-07T15:13:47.5044711-03:00
+
+=== arbol de dist/
+         253  dist\SHA256SUMS
+    12538274  dist\darwin-arm64\eco
+    13123746  dist\linux-amd64\eco
+        1076  dist\npm\javicss-eco-0.1.0.tgz
+     5185272  dist\npm\javicss-eco-darwin-arm64-0.1.0.tgz
+     5480889  dist\npm\javicss-eco-linux-x64-0.1.0.tgz
+     5478391  dist\npm\javicss-eco-win32-x64-0.1.0.tgz
+         417  dist\npm\eco\package.json
+         477  dist\npm\eco\README.md
+         952  dist\npm\eco\bin\eco.js
+         295  dist\npm\eco-darwin-arm64\package.json
+         341  dist\npm\eco-darwin-arm64\README.md
+    12538274  dist\npm\eco-darwin-arm64\bin\eco
+         287  dist\npm\eco-linux-x64\package.json
+         340  dist\npm\eco-linux-x64\README.md
+    13123746  dist\npm\eco-linux-x64\bin\eco
+         299  dist\npm\eco-win32-x64\package.json
+         342  dist\npm\eco-win32-x64\README.md
+    13211648  dist\npm\eco-win32-x64\bin\eco.exe
+    13211648  dist\windows-amd64\eco.exe
+         253  dist/SHA256SUMS
+    12538274  dist/darwin-arm64/eco
+    13123746  dist/linux-amd64/eco
+        1076  dist/npm/javicss-eco-0.1.0.tgz
+     5185272  dist/npm/javicss-eco-darwin-arm64-0.1.0.tgz
+     5480889  dist/npm/javicss-eco-linux-x64-0.1.0.tgz
+     5478391  dist/npm/javicss-eco-win32-x64-0.1.0.tgz
+         417  dist/npm/eco/package.json
+         477  dist/npm/eco/README.md
+         952  dist/npm/eco/bin/eco.js
+         295  dist/npm/eco-darwin-arm64/package.json
+         341  dist/npm/eco-darwin-arm64/README.md
+    12538274  dist/npm/eco-darwin-arm64/bin/eco
+         287  dist/npm/eco-linux-x64/package.json
+         340  dist/npm/eco-linux-x64/README.md
+    13123746  dist/npm/eco-linux-x64/bin/eco
+         299  dist/npm/eco-win32-x64/package.json
+         342  dist/npm/eco-win32-x64/README.md
+    13211648  dist/npm/eco-win32-x64/bin/eco.exe
+    13211648  dist/windows-amd64/eco.exe
+
+=== SHA256SUMS (verifica con Get-FileHash)
+469bfd1ea747cfc0f5d32d66fa06851d149fc6839579afe628a6de4670f621be  darwin-arm64/eco
+6f2c8d06043d1299fc1cc975e3f51d5f8409812cedf8e7474e7d39768bf951a1  linux-amd64/eco
+df9f3a115abc15be93f2f53c1d0a61ea981acc45aecf5f5ffc47590e24f330b1  windows-amd64/eco.exe
+
+darwin-arm64\eco -> 469bfd1ea747cfc0f5d32d66fa06851d149fc6839579afe628a6de4670f621be  coincide=True
+linux-amd64\eco -> 6f2c8d06043d1299fc1cc975e3f51d5f8409812cedf8e7474e7d39768bf951a1  coincide=True
+windows-amd64\eco.exe -> df9f3a115abc15be93f2f53c1d0a61ea981acc45aecf5f5ffc47590e24f330b1  coincide=True
+SHA256SUMS verifica todos: True
+
+=== los cuatro .tgz con su tamano
+        1076  javicss-eco-0.1.0.tgz
+     5185272  javicss-eco-darwin-arm64-0.1.0.tgz
+     5480889  javicss-eco-linux-x64-0.1.0.tgz
+     5478391  javicss-eco-win32-x64-0.1.0.tgz
+
+=== contenido de cada .tgz (tar tzf via npm/node)
+--- javicss-eco-0.1.0.tgz
+  package/bin/eco.js
+  package/package.json
+  package/README.md
+exit=0
+--- javicss-eco-darwin-arm64-0.1.0.tgz
+  package/bin/eco
+  package/package.json
+  package/README.md
+exit=0
+--- javicss-eco-linux-x64-0.1.0.tgz
+  package/bin/eco
+  package/package.json
+  package/README.md
+exit=0
+--- javicss-eco-win32-x64-0.1.0.tgz
+  package/bin/eco.exe
+  package/package.json
+  package/README.md
+exit=0
+
+=== package.json de cada paquete
+--- dist/npm/eco/package.json
+{
+  "name": "@javicss/eco",
+  "version": "0.1.0",
+  "description": "The memory of ARN: one binary per platform, chosen at install time.",
+  "bin": {
+    "eco": "bin/eco.js"
+  },
+  "files": [
+    "bin/eco.js",
+    "README.md"
+  ],
+  "optionalDependencies": {"@javicss/eco-win32-x64": "0.1.0",
+    "@javicss/eco-linux-x64": "0.1.0",
+    "@javicss/eco-darwin-arm64": "0.1.0"
+  },
+  "engines": {
+    "node": ">= 20"
+  }
+}
+--- dist/npm/eco-win32-x64/package.json
+{
+  "name": "@javicss/eco-win32-x64",
+  "version": "0.1.0",
+  "description": "The memory of ARN: the compiled binary for windows/amd64.",
+  "os": [
+    "windows"
+  ],
+  "cpu": [
+    "amd64"
+  ],
+  "bin": {
+    "eco-win32-x64": "bin/eco.exe"
+  },
+  "files": [
+    "bin/eco.exe",
+    "README.md"
+  ]
+}
+--- dist/npm/eco-linux-x64/package.json
+{
+  "name": "@javicss/eco-linux-x64",
+  "version": "0.1.0",
+  "description": "The memory of ARN: the compiled binary for linux/amd64.",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "amd64"
+  ],
+  "bin": {
+    "eco-linux-x64": "bin/eco"
+  },
+  "files": [
+    "bin/eco",
+    "README.md"
+  ]
+}
+--- dist/npm/eco-darwin-arm64/package.json
+{
+  "name": "@javicss/eco-darwin-arm64",
+  "version": "0.1.0",
+  "description": "The memory of ARN: the compiled binary for darwin/arm64.",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "bin": {
+    "eco-darwin-arm64": "bin/eco"
+  },
+  "files": [
+    "bin/eco",
+    "README.md"
+  ]
+}
+
+=== el launcher tal cual sale en el tarball
+#!/usr/bin/env node
+'use strict';
+
+const { spawnSync } = require('node:child_process');
+
+const SCOPE = '@javicss';
+const PLATFORM = process.platform;
+const ARCH = process.arch;
+const PACKAGE = `${SCOPE}/eco-${PLATFORM}-${ARCH}`;
+const BINARY = PLATFORM === 'win32' ? 'bin/eco.exe' : 'bin/eco';
+
+function fail(reason) {
+  process.stderr.write(
+    `eco: ${PACKAGE} is not installed on ${PLATFORM}/${ARCH}: ${reason}\n`
+  );
+  process.exit(2);
+}
+
+let target;
+try {
+  target = require.resolve(`${PACKAGE}/${BINARY}`);
+} catch (error) {
+  if (error && error.code === 'MODULE_NOT_FOUND') {
+    fail('the platform package is missing; npm may have run with --no-optional, --omit=optional, an os/cpu mismatch, or an incomplete install');
+  }
+  fail(`${error && error.message}`);
+}
+
+const run = spawnSync(target, process.argv.slice(2), { stdio: 'inherit' });
+if (run.error) {
+  fail(`${run.error.message}`);
+}
+process.exit(run.status === null ? 1 : run.status);

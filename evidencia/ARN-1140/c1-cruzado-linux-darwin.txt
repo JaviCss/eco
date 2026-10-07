@@ -1,0 +1,66 @@
+# ARN-1140 · criterio 1 (cruce): GOOS=linux y GOOS=darwin, vet y test -c de cada paquete
+# fecha: 2026-10-07T15:11:31.2643321-03:00
+# go: go version go1.26.1 windows/amd64
+# los tests se COMPILAN cruzado; correrlos en Linux o macOS es imposible en esta maquina y se declara.
+
+=== GOOS=linux GOARCH=amd64 go vet ./...
+exit=0
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__cmd_eco.test ./cmd/eco
+exit=0
+artefacto: 18714169 bytes
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__httpdoor.test ./httpdoor
+exit=0
+artefacto: 17383598 bytes
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__mcpdoor.test ./mcpdoor
+exit=0
+artefacto: 12527282 bytes
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__port.test ./port
+exit=0
+artefacto: 4648777 bytes
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__store.test ./store
+exit=0
+artefacto: 12117915 bytes
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__tools_release.test ./tools/release
+exit=0
+artefacto: 7195765 bytes
+
+=== GOOS=linux GOARCH=amd64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/linux-amd64__tools_goproxy.test ./tools/goproxy
+exit=0
+artefacto: 5185738 bytes
+
+=== GOOS=darwin GOARCH=arm64 go vet ./...
+exit=0
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__cmd_eco.test ./cmd/eco
+exit=0
+artefacto: 17989522 bytes
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__httpdoor.test ./httpdoor
+exit=0
+artefacto: 16633794 bytes
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__mcpdoor.test ./mcpdoor
+exit=0
+artefacto: 12000578 bytes
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__port.test ./port
+exit=0
+artefacto: 4362178 bytes
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__store.test ./store
+exit=0
+artefacto: 11619522 bytes
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__tools_release.test ./tools/release
+exit=0
+artefacto: 6870274 bytes
+
+=== GOOS=darwin GOARCH=arm64 go test -c -o C:\Users\Javier Css/.arn/scratch/ARN-1140/cross/darwin-arm64__tools_goproxy.test ./tools/goproxy
+exit=0
+artefacto: 4892786 bytes

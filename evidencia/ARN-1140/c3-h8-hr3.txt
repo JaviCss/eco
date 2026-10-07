@@ -1,0 +1,52 @@
+# ARN-1140 · criterios 3 y 4: H8 (helpers partidos) y HR3 (restrictFileToOwner)
+# fecha: 2026-10-07T15:12:04.9907000-03:00
+# cwd: C:/Users/Javier Css/Desktop/Asistente/eco
+
+=== H8: rg -l 'makeJunction|errorsIs|dirEntriesOf' store/
+store/helpers_test.go
+store/junction_other_test.go
+store/open_mirror_test.go
+store/junction_windows_test.go
+store/store_test.go
+exit=0
+
+=== H8: rg -n 'func (makeJunction|errorsIs|dirEntriesOf|resolve)' store/
+store/store.go:138:func resolvedDir(path string) string {
+store/junction_other_test.go:7:func makeJunction(link, target string) error {
+store/junction_windows_test.go:10:func makeJunction(link, target string) error {
+store/helpers_test.go:9:func errorsIs(err, target error) bool {
+store/helpers_test.go:13:func dirEntriesOf(dir string) ([]string, error) {
+store/helpers_test.go:25:func resolve(path string) (string, error) {
+exit=0
+
+=== H8: los helpers de test que usan esos simbolos
+store/open_mirror_test.go:60:		if err := makeJunction(link, real); err != nil {
+store/store_test.go:250:	if err := makeJunction(link, real); err != nil {
+store/store_test.go:305:	return err != nil && errorsIs(err, port.ErrUnavailable)
+exit=0
+
+=== H8: rg 'exec\.' httpdoor/acl_other.go  (criterio 3: debe estar vacio)
+(sin coincidencias)
+exit=1
+
+=== H8: el .mod de platform dice que NO ejecuta stat
+31:func PortFileACL(path string) ([]string, error) {
+32:	info, err := os.Stat(path)
+36:	if !info.Mode().IsRegular() {
+39:	return []string{fmt.Sprintf("%04o", info.Mode().Perm())}, nil
+exit=0
+
+=== HR3: rg restrictFileToOwner en todo el repo
+.\httpdoor\acl_other.go:16:	if err := restrictFileToOwner(name); err != nil {
+.\httpdoor\acl_other.go:24:func restrictFileToOwner(path string) error {
+exit=0
+
+=== HR3: solo debe quedar en acl_other.go
+archivos: .\httpdoor\acl_other.go
+solo acl_other.go: True
+
+=== HR3: PortFileACL en Windows sigue leyendo la DACL por la API, sin restrictFileToOwner
+18:func ownerOnlyAttributes() (*windows.SecurityAttributes, error) {
+35:	attributes, err := ownerOnlyAttributes()
+85:func PortFileACL(path string) ([]string, error) {
+exit=0

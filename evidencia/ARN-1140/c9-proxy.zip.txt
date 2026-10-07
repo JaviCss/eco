@@ -1,0 +1,120 @@
+# ARN-1140 · criterio 9: el tag del modulo Go por un GOPROXY de archivos, sin red
+# fecha: 2026-10-07T15:16:51.7768644-03:00
+# go: go version go1.26.1 windows/amd64
+# cwd: C:/Users/Javier Css/Desktop/Asistente/eco
+
+=== el tag local (anotado, sin push)
+v0.1.0          eco v0.1.0
+exit=0
+git show-ref --tags:
+798ae193e023c057398de894b5140a305bf58f69 refs/tags/v0.1.0
+git remote -v (tiene que seguir vacio):
+(vacio)
+
+=== go run ./tools/goproxy --repo . --out <proxy> --tag v0.1.0
+goproxy: github.com/JaviCss/eco published as github.com/JaviCss/eco@v0.1.0 (54 files)
+exit=0
+
+=== lo que quedo en el proxy
+         7  github.com/!javi!css/eco/@v/list
+        50  github.com/!javi!css/eco/@v/v0.1.0.info
+       881  github.com/!javi!css/eco/@v/v0.1.0.mod
+     85635  github.com/!javi!css/eco/@v/v0.1.0.zip
+
+=== el arbol del proxy
+--- list
+  v0.1.0
+--- v0.1.0.info
+  {"Version":"v0.1.0","Time":"2026-10-07T16:57:25Z"}
+--- v0.1.0.mod
+  module github.com/JaviCss/eco
+  
+  go 1.26.0
+  
+  require (
+  	github.com/modelcontextprotocol/go-sdk v1.8.0
+  	golang.org/x/sys v0.48.0
+  	modernc.org/sqlite v1.60.1
+  )
+  
+  require (
+  	github.com/dustin/go-humanize v1.0.1 // indirect
+  	github.com/google/jsonschema-go v0.4.3 // indirect
+  	github.com/google/uuid v1.6.0 // indirect
+  	github.com/mattn/go-isatty v0.0.24 // indirect
+  	github.com/ncruces/go-strftime v1.0.0 // indirect
+  	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+  	github.com/segmentio/asm v1.1.3 // indirect
+  	github.com/segmentio/encoding v0.5.4 // indirect
+  	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
+  	golang.org/x/oauth2 v0.35.0 // indirect
+  	golang.org/x/sync v0.23.0 // indirect
+  	golang.org/x/time v0.15.0 // indirect
+  	modernc.org/libc v1.77.1 // indirect
+  	modernc.org/mathutil v1.7.1 // indirect
+  	modernc.org/memory v1.12.1 // indirect
+  )
+
+=== el contenido del zip (listado pegado)
+  github.com/JaviCss/eco@v0.1.0/README.md
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/cli_test.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/cli_windows_test.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/main.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/main_test.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/mcp.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/parent_other.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/parent_windows.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/serve.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/verbs.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/version.go
+  github.com/JaviCss/eco@v0.1.0/cmd/eco/version_test.go
+  github.com/JaviCss/eco@v0.1.0/go.mod
+  github.com/JaviCss/eco@v0.1.0/go.sum
+  github.com/JaviCss/eco@v0.1.0/httpdoor/acl_other.go
+  github.com/JaviCss/eco@v0.1.0/httpdoor/acl_windows.go
+  github.com/JaviCss/eco@v0.1.0/httpdoor/acl_windows_test.go
+  github.com/JaviCss/eco@v0.1.0/httpdoor/httpdoor.go
+  github.com/JaviCss/eco@v0.1.0/httpdoor/httpdoor_test.go
+  github.com/JaviCss/eco@v0.1.0/httpdoor/portfile.go
+  github.com/JaviCss/eco@v0.1.0/mcpdoor/door.go
+  github.com/JaviCss/eco@v0.1.0/mcpdoor/door_test.go
+  github.com/JaviCss/eco@v0.1.0/mcpdoor/server.go
+  github.com/JaviCss/eco@v0.1.0/mcpdoor/server_test.go
+  github.com/JaviCss/eco@v0.1.0/port/conformance.go
+  github.com/JaviCss/eco@v0.1.0/port/conformance_guard_test.go
+  github.com/JaviCss/eco@v0.1.0/port/fake.go
+  github.com/JaviCss/eco@v0.1.0/port/fake_test.go
+  github.com/JaviCss/eco@v0.1.0/port/merge_test.go
+  github.com/JaviCss/eco@v0.1.0/port/port.go
+  github.com/JaviCss/eco@v0.1.0/store/busy_test.go
+  github.com/JaviCss/eco@v0.1.0/store/findings_test.go
+  github.com/JaviCss/eco@v0.1.0/store/helpers_test.go
+  github.com/JaviCss/eco@v0.1.0/store/hidden_other.go
+  github.com/JaviCss/eco@v0.1.0/store/hidden_windows.go
+  github.com/JaviCss/eco@v0.1.0/store/junction_other_test.go
+  github.com/JaviCss/eco@v0.1.0/store/junction_windows_test.go
+  github.com/JaviCss/eco@v0.1.0/store/open_mirror_test.go
+  github.com/JaviCss/eco@v0.1.0/store/perf_test.go
+  github.com/JaviCss/eco@v0.1.0/store/profile.go
+  github.com/JaviCss/eco@v0.1.0/store/profile_test.go
+  github.com/JaviCss/eco@v0.1.0/store/promote.go
+  github.com/JaviCss/eco@v0.1.0/store/promote_cancel_test.go
+  github.com/JaviCss/eco@v0.1.0/store/promote_matrix_test.go
+  github.com/JaviCss/eco@v0.1.0/store/promote_test.go
+  github.com/JaviCss/eco@v0.1.0/store/readonly_test.go
+  github.com/JaviCss/eco@v0.1.0/store/reparse_other.go
+  github.com/JaviCss/eco@v0.1.0/store/reparse_windows.go
+  github.com/JaviCss/eco@v0.1.0/store/samefile_test.go
+  github.com/JaviCss/eco@v0.1.0/store/samefile_windows_test.go
+  github.com/JaviCss/eco@v0.1.0/store/schema.go
+  github.com/JaviCss/eco@v0.1.0/store/sqlerr.go
+  github.com/JaviCss/eco@v0.1.0/store/store.go
+  github.com/JaviCss/eco@v0.1.0/store/store_test.go
+exit=0
+contiene 'evidencia/': False  (0 entradas)
+contiene 'poc/': False  (0 entradas)
+contiene 'dist/': False  (0 entradas)
+contiene 'npm/': False  (0 entradas)
+contiene 'tools/': False  (0 entradas)
+total de entradas: 54
+contiene go.mod en la raiz del modulo: True

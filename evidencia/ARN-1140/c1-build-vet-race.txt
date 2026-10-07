@@ -1,0 +1,22 @@
+# ARN-1140 · criterio 1: go build, go vet y go test -race del modulo completo
+# fecha: 2026-10-07T15:07:53.8236100-03:00
+# go: go version go1.26.1 windows/amd64
+# cwd: C:/Users/Javier Css/Desktop/Asistente/eco
+# nota: el arbol tiene cambios sin commitear (E2 no commitea en ../eco), asi que los
+#      binarios locales llevan vcs.modified=true y Main.Version v0.1.0+dirty.
+
+=== go build ./...
+exit=0
+
+=== go vet ./...
+exit=0
+
+=== go test -race ./...
+ok  	github.com/JaviCss/eco/cmd/eco	32.551s
+ok  	github.com/JaviCss/eco/httpdoor	4.648s
+ok  	github.com/JaviCss/eco/mcpdoor	2.270s
+ok  	github.com/JaviCss/eco/port	1.275s
+ok  	github.com/JaviCss/eco/store	199.991s
+ok  	github.com/JaviCss/eco/tools/goproxy	1.553s
+ok  	github.com/JaviCss/eco/tools/release	1.500s
+exit=0

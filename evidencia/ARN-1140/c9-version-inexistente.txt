@@ -1,0 +1,44 @@
+# ARN-1140 · criterio 9: control negativo de la version inexistente, bien servido
+# fecha: 2026-10-07T15:20:02.3057924-03:00
+# go: go version go1.26.1 windows/amd64
+
+Con 'off' al final del GOPROXY el mensaje era 'module lookup disabled by GOPROXY=off',
+que es el sintoma de la caida en cadena, no del version inexistente. Sin 'off', el proxy
+de archivos responde 404 en @v/v0.0.9.info y el go tool dice 'unknown revision'.
+
+=== GOPROXY=file:///C:/Users/Javier Css/.arn/scratch/ARN-1140/proxy   (solo el proxy de eco)
+GOPROXY=file:///C:/Users/Javier Css/.arn/scratch/ARN-1140/proxy
+
+=== go get github.com/JaviCss/eco@v0.0.9
+go.exe : go: github.com/JaviCss/eco@v0.0.9: reading 
+file:///C:/Users/Javier%20Css/.arn/scratch/ARN-1140/proxy/github.com/%21javi%21css/eco/@v/v0.0.9.info: El sistema no 
+puede encontrar el archivo especificado.
+En línea: 25 Carácter: 9
++ $neg = (& go get github.com/JaviCss/eco@v0.0.9 2>&1 | Out-String)
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (go: github.com/...o especificado.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+exit=1
+el mensaje dice 'unknown revision': False
+
+=== go install github.com/JaviCss/eco/cmd/eco@v0.0.9
+go.exe : go: github.com/JaviCss/eco/cmd/eco@v0.0.9: github.com/JaviCss/eco/cmd/eco@v0.0.9: reading 
+file:///C:/Users/Javier%20Css/.arn/scratch/ARN-1140/proxy/github.com/%21javi%21css/eco/cmd/eco/@v/v0.0.9.info: El 
+sistema no puede encontrar la ruta especificada.
+En línea: 31 Carácter: 10
++ $neg2 = (& go install github.com/JaviCss/eco/cmd/eco@v0.0.9 2>&1 | Ou ...
++          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (go: github.com/...a especificada.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+exit=1
+el mensaje dice 'unknown revision': False
+
+=== el go.mod del consumidor quedo intacto
+  module example.com/consumidor
+  
+  go 1.26.0
+  
+  require github.com/JaviCss/eco v0.1.0
+el consumidor sigue compilando: la version que quedo sigue en la cache
+exit=0
+Z2 vive en el scope user (ok=true)

@@ -1,0 +1,80 @@
+# ARN-1140 · criterios 7 y 8: la positiva de npm contra los tarballs locales
+# fecha: 2026-10-07T15:15:49.7414840-03:00
+# node: v24.14.0   npm: 11.9.0
+# dir: C:\Users\Javier Css/.arn/scratch/ARN-1140/npm-positiva
+
+=== npm init -y
+Wrote to C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-positiva\package.json:
+
+{
+  "name": "npm-positiva",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
+
+
+exit=0
+
+=== npm install <principal.tgz> <win32-x64.tgz>
+
+added 2 packages, and audited 3 packages in 950ms
+
+found 0 vulnerabilities
+exit=0
+'added 2' en la salida: False
+
+=== npm ls --all
+npm-positiva@1.0.0 C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-positiva
++-- @javicss/eco-win32-x64@0.1.0
+`-- @javicss/eco@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-darwin-arm64@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-linux-x64@0.1.0
+  `-- @javicss/eco-win32-x64@0.1.0 deduped
+
+exit=0
+menciona 'invalid': False
+menciona 'UNMET': True
+menciona 'corrupted': False
+
+=== npx --no-install eco --version
+eco v0.1.0+dirty (aa0141f52b0d, dirty)
+exit=0
+
+=== node node_modules/@javicss/eco/bin/eco.js --version
+eco v0.1.0+dirty (aa0141f52b0d, dirty)
+exit=0
+
+=== lo que hay en node_modules
+  eco
+  eco-win32-x64
+=== el .bin que creo npm
+  eco
+  eco-win32-x64
+  eco-win32-x64.cmd
+  eco-win32-x64.ps1
+  eco.cmd
+  eco.ps1
+
+=== propagacion del exit code: eco append sobre Z2 con el perfil humano (debe salir 5)
+eco doctor: eco: unavailable
+seed exit=1
+
+--- a traves del launcher: node node_modules/@javicss/eco/bin/eco.js append --axis Z2 --user-db ... --project-db ... --body x
+eco append: eco: forbidden
+launcher exit=5
+
+--- el binario directo, para comparar
+eco append: eco: forbidden
+directo exit=5
+
+--- un verbo que sale 4 (not found): eco get con un id que no esta
+eco get: eco: not found
+launcher exit=4

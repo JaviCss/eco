@@ -1,0 +1,25 @@
+# ARN-1140 · criterio 6: control negativo del release, sin --version y sin tag exacto
+# fecha: 2026-10-07T15:14:25.9000147-03:00
+# el release se compila una vez y se corre en un directorio que NO es un repo git:
+#   ahi git describe --tags --exact-match no puede resolver, y el release tiene que decirlo con nombre.
+
+=== el directorio de prueba (go.mod propio, sin .git)
+C:\Users\Javier Css/.arn/scratch/ARN-1140/no-git-repo/go.mod:
+  module example.com/vacio
+  
+  go 1.26.0
+  
+.git presente: False
+
+=== release.exe --out <dest> (sin --version)
+release: the module carries no exact tag: exit status 128: fatal: No names found, cannot describe anything.
+exit=1
+
+=== el mismo release desde el repo de eco, sin --version (si tiene tag exacto, debe tomarlo)
+release: v0.1.0 built into C:\Users\Javier Css\.arn\scratch\ARN-1140\tag-dist and packed into C:\Users\Javier Css\.arn\scratch\ARN-1140\tag-dist\npm
+exit=0
+(si aparece, la version la saco de git describe --tags --exact-match = v0.1.0)
+
+=== release.exe con un argumento de mas
+release: unexpected argument "sobra"
+exit=1

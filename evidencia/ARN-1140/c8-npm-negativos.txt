@@ -1,0 +1,90 @@
+# ARN-1140 · criterio 8: los tres controles negativos de la instalacion npm
+# fecha: 2026-10-07T15:16:02.7779097-03:00
+# node: v24.14.0   npm: 11.9.0
+
+=== CONTROL NEGATIVO 1: solo el paquete principal
+# dir: C:\Users\Javier Css/.arn/scratch/ARN-1140/npm-neg1-solo-principal
+
+=== npm install <principal.tgz>
+
+added 1 package, and audited 2 packages in 831ms
+
+found 0 vulnerabilities
+exit=0
+
+=== npx --no-install eco --version  (debe salir 2 nombrando @javicss/eco-win32-x64)
+eco: @javicss/eco-win32-x64 is not installed on win32/x64: the platform package is missing; npm may have run with --no-optional, --omit=optional, an os/cpu mismatch, or an incomplete install
+exit=2
+
+=== npm ls --all (debe mostrar UNMET OPTIONAL DEPENDENCY)
+npm-neg1-solo-principal@1.0.0 C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-neg1-solo-principal
+`-- @javicss/eco@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-darwin-arm64@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-linux-x64@0.1.0
+  `-- UNMET OPTIONAL DEPENDENCY @javicss/eco-win32-x64@0.1.0
+
+exit=0
+menciona 'UNMET OPTIONAL DEPENDENCY @javicss/eco-win32-x64': True
+menciona 'invalid': False
+
+=== node_modules/@javicss
+  eco
+
+=== CONTROL NEGATIVO 2: el tarball de linux-x64 en Windows
+# dir: C:\Users\Javier Css/.arn/scratch/ARN-1140/npm-neg2-linux-en-windows
+
+=== npm install <principal.tgz> <linux-x64.tgz>
+npm error code EBADPLATFORM
+npm error notsup Unsupported platform for @javicss/eco-linux-x64@0.1.0: wanted {"os":"linux","cpu":"x64"} (current: {"os":"win32","cpu":"x64"})
+npm error notsup Valid os:   linux
+npm error notsup Actual os:  win32
+npm error notsup Valid cpu:  x64
+npm error notsup Actual cpu: x64
+npm error A complete log of this run can be found in: C:\Users\Javier Css\AppData\Local\npm-cache\_logs\2026-10-07T18_16_06_919Z-debug-0.log
+exit=1
+
+=== node_modules/@javicss (npm debe haber omitido el de linux)
+esta el de linux: False
+esta el de win32: False
+
+=== npx --no-install eco --version (el launcher debe nombrar el que esperaba)
+Eco version 1.1.0-rc-3
+exit=0
+el mensaje nombra @javicss/eco-win32-x64: False
+
+=== npm ls --all
+npm-neg2-linux-en-windows@1.0.0 C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-neg2-linux-en-windows
+`-- (empty)
+
+exit=0
+
+=== CONTROL 3: --ignore-scripts no cambia nada
+# dir: C:\Users\Javier Css/.arn/scratch/ARN-1140/npm-control3-ignore-scripts
+
+=== npm install --ignore-scripts <principal.tgz> <win32-x64.tgz>
+
+added 2 packages, and audited 3 packages in 965ms
+
+found 0 vulnerabilities
+exit=0
+
+=== npx --no-install eco --version
+eco v0.1.0+dirty (aa0141f52b0d, dirty)
+exit=0
+
+=== npm ls --all
+npm-control3-ignore-scripts@1.0.0 C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-control3-ignore-scripts
++-- @javicss/eco-win32-x64@0.1.0
+`-- @javicss/eco@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-darwin-arm64@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-linux-x64@0.1.0
+  `-- @javicss/eco-win32-x64@0.1.0 deduped
+
+exit=0
+menciona 'invalid': False
+
+=== los manifests declaran scripts? (no deben)
+principal:  False
+win32-x64:  False
+linux-x64:  False
+darwin:     False

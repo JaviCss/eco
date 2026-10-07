@@ -1,0 +1,14 @@
+# ARN-1140 · criterio 6: el release sin red, con version por flag
+# fecha: 2026-10-07T15:13:31.7641060-03:00
+# go: go version go1.26.1 windows/amd64
+# cwd: C:/Users/Javier Css/Desktop/Asistente/eco
+
+=== git tag antes del release
+v0.1.0
+exit=0
+git describe --tags --exact-match = v0.1.0
+
+=== go run ./tools/release --version v0.1.0 --out dist/
+release: v0.1.0 built into C:\Users\Javier Css\Desktop\Asistente\eco\dist and packed into C:\Users\Javier Css\Desktop\Asistente\eco\dist\npm
+exit=0
+duracion: 9,7s

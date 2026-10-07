@@ -1,0 +1,89 @@
+# ARN-1140 · criterios 9 (tidy/verify), 10 y 11
+# fecha: 2026-10-07T15:20:14.6005800-03:00
+# go: go version go1.26.1 windows/amd64
+# cwd: C:/Users/Javier Css/Desktop/Asistente/eco
+
+=== go mod tidy  (no debe cambiar go.mod ni go.sum)
+exit=0
+go.mod quedo igual: True
+go.sum quedo igual: False  (tidy QUITO una linea huerfana: cloud.google.com/go/compute/metadata v0.3.0/go.mod, que no la necesita nadie. El go.mod no cambio. Se restauro el go.sum con git checkout para que el cambio de tidy no viaje en el commit de la card.)
+--- go.mod (el que se midio)
+  module github.com/JaviCss/eco
+  
+  go 1.26.0
+  
+  require (
+  	github.com/modelcontextprotocol/go-sdk v1.8.0
+  	golang.org/x/sys v0.48.0
+  	modernc.org/sqlite v1.60.1
+  )
+  
+  require (
+  	github.com/dustin/go-humanize v1.0.1 // indirect
+  	github.com/google/jsonschema-go v0.4.3 // indirect
+  	github.com/google/uuid v1.6.0 // indirect
+  	github.com/mattn/go-isatty v0.0.24 // indirect
+  	github.com/ncruces/go-strftime v1.0.0 // indirect
+  	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+  	github.com/segmentio/asm v1.1.3 // indirect
+  	github.com/segmentio/encoding v0.5.4 // indirect
+  	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
+  	golang.org/x/oauth2 v0.35.0 // indirect
+  	golang.org/x/sync v0.23.0 // indirect
+  	golang.org/x/time v0.15.0 // indirect
+  	modernc.org/libc v1.77.1 // indirect
+  	modernc.org/mathutil v1.7.1 // indirect
+  	modernc.org/memory v1.12.1 // indirect
+  )
+requires directos (bloque sin '// indirect'): 3 -> github.com/modelcontextprotocol/go-sdk v1.8.0, golang.org/x/sys v0.48.0, modernc.org/sqlite v1.60.1
+
+=== go mod verify
+all modules verified
+exit=0
+
+=== CRITERIO 10: nada salio
+--- git tag
+  v0.1.0
+--- git remote -v
+  (vacio: no hay remoto)
+--- git status --porcelain=v1 -b (la rama y lo que quedo sin commitear)
+  ## ARN-1140
+   M cmd/eco/cli_test.go
+   M cmd/eco/main.go
+   M go.sum
+   M httpdoor/acl_other.go
+   M httpdoor/acl_windows.go
+   D store/helpers_windows_test.go
+   M store/promote_test.go
+  ?? cmd/eco/version.go
+  ?? cmd/eco/version_test.go
+  ?? evidencia/ARN-1140/
+  ?? store/helpers_test.go
+  ?? store/junction_other_test.go
+  ?? store/junction_windows_test.go
+  ?? store/promote_cancel_test.go
+  ?? tools/
+--- el archivo que demuestra que no se publico: no hay ningun npm publish en la evidencia
+  (ninguna aparicion de npm publish / git push en evidencia/ARN-1140)
+
+=== CRITERIO 11: reglas de codigo
+--- 11a: ningun .go tiene comentarios salvo //go:build
+  TOTAL	archivos=56	comentarios_no_build_tag=0	archivos_con_violacion=0
+  exit=0
+--- 11b: el launcher JS no requiere nada de terceros
+  requires: node:child_process
+  requiere algo fuera de node::: False  ()
+--- 11c: go.mod sigue con tres requires directos
+  (el grep de arriba se llevo tambien los indirect; los tres directos son: github.com/modelcontextprotocol/go-sdk v1.8.0, golang.org/x/sys v0.48.0, modernc.org/sqlite v1.60.1) github.com/google/jsonschema-go v0.4.3 // indirect github.com/google/uuid v1.6.0 // indirect github.com/mattn/go-isatty v0.0.24 // indirect github.com/ncruces/go-strftime v1.0.0 // indirect github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect github.com/segmentio/asm v1.1.3 // indirect github.com/segmentio/encoding v0.5.4 // indirect github.com/yosida95/uritemplate/v3 v3.0.2 // indirect golang.org/x/oauth2 v0.35.0 // indirect golang.org/x/sync v0.23.0 // indirect golang.org/x/time v0.15.0 // indirect modernc.org/libc v1.77.1 // indirect modernc.org/mathutil v1.7.1 // indirect modernc.org/memory v1.12.1 // indirect
+--- 11d: los archivos del modulo zip NO llevan tools/ (criterio del bloque de codigo)
+  tools/ en el .mod: False
+
+=== el go.sum despues de tidy, y por que se restauro
+go mod tidy removio del go.sum una linea que no le hace falta a nadie:
+  -cloud.google.com/go/compute/metadata v0.3.0/go.mod h1:zFmK7XCadkQkj6TtorcaGlCW1hT1fIilQDwofLpJ20k=
+Viene de una dependencia indirecta que ya no arrastra el grafo. No lo toco: la card no pide
+tocar el go.sum y el arquitecto commitea; el cambio queda anotado aca para que sea el quien
+decida. Con 'git checkout -- go.sum' el arbol vuelve al estado de aa0141f.
+Verificacion de que quedo restaurado:
+
+git diff --stat -- go.sum: vacio = el go.sum esta como en aa0141f

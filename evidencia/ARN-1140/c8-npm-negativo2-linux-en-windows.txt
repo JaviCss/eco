@@ -1,0 +1,76 @@
+# ARN-1140 · criterio 8: control negativo 2, el tarball de linux-x64 en Windows
+# fecha: 2026-10-07T15:16:37.8075246-03:00
+# node: v24.14.0   npm: 11.9.0
+
+Nota de instrumentacion: con npm 11 el spec opcional de una plataforma que no
+corresponde aborta la instalacion entera con EBADPLATFORM y deja el arbol vacio,
+asi que el launcher no tiene nada que resolver todavia. Por eso el control se
+arma en dos pasos: primero el EBADPLATFORM, y despues solo el principal para
+que el launcher corra y diga que paquete esperaba.
+
+=== dir: C:\Users\Javier Css/.arn/scratch/ARN-1140/npm-neg2-linux-en-windows
+
+=== npm install <principal.tgz> <linux-x64.tgz>   (npm 11 aborta: EBADPLATFORM)
+npm error code EBADPLATFORM
+npm error notsup Unsupported platform for @javicss/eco-linux-x64@0.1.0: wanted {"os":"linux","cpu":"x64"} (current: {"os":"win32","cpu":"x64"})
+npm error notsup Valid os:   linux
+npm error notsup Actual os:  win32
+npm error notsup Valid cpu:  x64
+npm error notsup Actual cpu: x64
+npm error A complete log of this run can be found in: C:\Users\Javier Css\AppData\Local\npm-cache\_logs\2026-10-07T18_16_39_056Z-debug-0.log
+exit=1
+
+=== npm ls --all tras el aborto
+npm-neg2-linux-en-windows@1.0.0 C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-neg2-linux-en-windows
+`-- (empty)
+
+exit=0
+node_modules/@javicss existe: False
+el de linux quedo: False
+
+=== ahora solo el principal, que si instala: el launcher tiene que fallar en runtime
+
+added 1 package, and audited 2 packages in 886ms
+
+found 0 vulnerabilities
+exit=0
+node_modules/@javicss:
+  eco
+el de linux quedo: False
+
+=== node node_modules/@javicss/eco/bin/eco.js --version  (espera el de win32)
+eco: @javicss/eco-win32-x64 is not installed on win32/x64: the platform package is missing; npm may have run with --no-optional, --omit=optional, an os/cpu mismatch, or an incomplete install
+exit=2
+el mensaje nombra @javicss/eco-win32-x64: True
+el mensaje nombra la plataforma win32/x64: True
+
+=== npm ls --all
+npm-neg2-linux-en-windows@1.0.0 C:\Users\Javier Css\.arn\scratch\ARN-1140\npm-neg2-linux-en-windows
+`-- @javicss/eco@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-darwin-arm64@0.1.0
+  +-- UNMET OPTIONAL DEPENDENCY @javicss/eco-linux-x64@0.1.0
+  `-- UNMET OPTIONAL DEPENDENCY @javicss/eco-win32-x64@0.1.0
+
+exit=0
+
+=== por que el linux se omite: los os/cpu que npm compara
+process.platform = win32   process.arch = x64
+el manifest de eco-linux-x64 declara:
+  {
+    "name": "@javicss/eco-linux-x64",
+    "version": "0.1.0",
+    "description": "The memory of ARN: the compiled binary for linux/x64.",
+    "os": [
+      "linux"
+    ],
+    "cpu": [
+      "x64"
+    ],
+    "bin": {
+      "eco-linux-x64": "bin/eco"
+    },
+    "files": [
+      "bin/eco",
+      "README.md"
+    ]
+  }

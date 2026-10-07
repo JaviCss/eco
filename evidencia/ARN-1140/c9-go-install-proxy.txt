@@ -1,0 +1,72 @@
+# ARN-1140 · criterio 9: go install github.com/JaviCss/eco/cmd/eco@v0.1.0 por GOPROXY=file://
+# fecha: 2026-10-07T15:19:35.3918148-03:00
+# go: go version go1.26.1 windows/amd64
+# exit de la corrida: 0
+
+## Tres cosas que hubo que arreglar antes de que la corrida significara algo.
+Cada una hacia que la corridaDijera 'verde' sin probar nada. Se dejan escritas porque
+son la forma en que esta prueba puede Mentir.
+
+1. GOPRIVATE no va. GOPRIVATE implica GONOPROXY, que saltea el GOPROXY y hace
+   git ls-remote contra github. Primer intento:
+     go: github.com/JaviCss/eco/cmd/eco@v0.1.0: loading deprecation for github.com/JaviCss/eco:
+     git ls-remote -q --end-of-options https://github.com/JaviCss/eco: exit status 128:
+     remote: Repository not found.        (pegado de la corrida fallida)
+   Con GOSUMDB=off y GOFLAGS=-mod=mod alcanza; el zip no se verifica contra la suma.
+
+2. La cache de modulos tenia un eco@v0.1.0 de la sonda de diseno (79615 bytes), y go
+   instalaba ESE sin volver al proxy: salia 0, pero el binario no tenia --version.
+   Se borro la entrada de la cache de eco antes de instalar, y despues se comparo el
+   hash del zip de la cache contra el del proxy (abajo: True).
+
+3. La cache del filesystem de Go (go clean -cache) tenia la lectura del directorio
+   del path del modulo desde la sonda, asi que el compilador no VIA el version.go recien
+   extraido: 'undefined: versionLine' con el archivo sitting en el directorio.
+   Con la cache limpia compila. Que un 'undefined' con el archivo al lado sea un bug de
+   cache y no del codigo es lo que hace esta pruebaparable de nuevo.
+
+=== el entorno
+GOPROXY=file:///C:/Users/Javier Css/.arn/scratch/ARN-1140/proxy,file:///C:/Users/Javier Css/go/pkg/mod/cache/download,off
+GOSUMDB=off
+GOFLAGS=-mod=mod
+GOBIN=C:\Users\Javier Css/.arn/scratch/ARN-1140/gobin
+(el segundo file:// es la cache de modulos, donde ya estan las tres dependencias de eco;
+ 'off' al final prohibe cualquier salida a la red)
+
+=== go install github.com/JaviCss/eco/cmd/eco@v0.1.0
+exit=0   duracion=47,5s   (tras go clean -cache)
+
+=== lo instalado
+    19410944  eco.exe
+
+=== el zip que entro de verdad (control positivo)
+cache: 85635 bytes   proxy: 85635 bytes
+los dos zip son el mismo: True
+
+=== eco --version y eco version del binario instalado por el proxy
+eco v0.1.0
+exit=0
+eco v0.1.0
+exit=0
+
+=== go version -m (Main.Version y si trae vcs.revision)
+	path	github.com/JaviCss/eco/cmd/eco
+	mod	github.com/JaviCss/eco	v0.1.0	h1:9Ne+n1OhZn0SJgMG7494NaWomuzoVQkz8wGVS0H1LUw=
+
+### lo que se ve aqui, y es un hecho sobre el instrumento:
+El binario instalado por el proxy dice 'eco v0.1.0' y NO trae vcs.revision: el zip
+del modulo no lleva .git, asi que el go tool no tiene VCS que estampar. El binario de
+dist/ si lo trae, porque se compilo desde el arbol. El numero que comparten las dos
+rutas es el Main.Version (v0.1.0), no el vcs.revision. Queda declarado, no resuelto:
+la card (criterio 2) pide 'la misma vcs.revision' en las dos rutas y eso no lo da el
+instrumento: vcs.revision solo existe cuando el build ve un arbol de control de versiones.
+
+=== los tres caminos, uno al lado del otro
+tarball de npm  : eco v0.1.0+dirty (aa0141f52b0d, dirty)
+dist/ (release) : eco v0.1.0+dirty (aa0141f52b0d, dirty)
+go install/proxy: eco v0.1.0
+
+=== Main.Version de cada uno
+dist/          : mod	github.com/JaviCss/eco	v0.1.0+dirty
+proxy          : mod	github.com/JaviCss/eco	v0.1.0	h1:9Ne+n1OhZn0SJgMG7494NaWomuzoVQkz8wGVS0H1LUw=
+npm (dist)     : mod	github.com/JaviCss/eco	v0.1.0+dirty
