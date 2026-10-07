@@ -74,14 +74,14 @@ func mcpSession(t *testing.T, binary, user, project string) *mcp.ClientSession {
 	return session
 }
 
-func TestHelpListsTheTenVerbs(t *testing.T) {
+func TestHelpListsTheElevenVerbs(t *testing.T) {
 	binary := buildEco(t)
 	out, code := run(t, binary, "--help")
 	if code != 0 {
 		t.Fatalf("--help exited %d:\n%s", code, out)
 	}
 	got := verbsOf(out)
-	want := []string{"append", "doctor", "get", "help", "mcp", "probe", "promote", "read", "search", "serve"}
+	want := []string{"append", "doctor", "get", "help", "mcp", "probe", "promote", "read", "search", "serve", "version"}
 	if strings.Join(got, " ") != strings.Join(want, " ") {
 		t.Fatalf("--help lists %v, want exactly %v", got, want)
 	}

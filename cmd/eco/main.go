@@ -60,11 +60,21 @@ func main() {
 	case "serve":
 		serveVerb(args)
 		return
+	case "-v", "--version", "version":
+		versionVerb(args)
+		return
 	default:
 		fmt.Fprintf(os.Stderr, "eco: unknown verb %q\n", verb)
 		usage(os.Stderr)
 		os.Exit(exitUsage)
 	}
+}
+
+func versionVerb(args []string) {
+	if len(args) > 0 {
+		refuse("version", fmt.Sprintf("unexpected argument %q", args[0]))
+	}
+	fmt.Println(versionLine())
 }
 
 func usage(w *os.File) {
@@ -80,6 +90,7 @@ func usage(w *os.File) {
 	fmt.Fprintln(w, "  eco doctor --user-db <p> --project-db <p>")
 	fmt.Fprintln(w, "  eco mcp --user-db <p> --project-db <p>")
 	fmt.Fprintln(w, "  eco serve --user-db <p> --project-db <p> --parent-pid <pid> --port-file <p> [--addr <host:port>]")
+	fmt.Fprintln(w, "  eco version")
 	fmt.Fprintln(w, "  eco help")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "exit codes: 2 usage, 3 unavailable, 4 not found, 5 forbidden, 6 invalid")
@@ -167,6 +178,12 @@ func doctor(args []string) {
 	if err := readOnly.Probe(context.Background()); err != nil {
 		fmt.Fprintf(os.Stderr, "eco doctor: %s\n", sentinelName(err))
 		os.Exit(exitFailed)
+	}
+	version, revision, modified := buildStamp()
+	fmt.Printf("version: eco %s\n", version)
+	fmt.Printf("revision: %s\n", revisionLine(revision))
+	if modified {
+		fmt.Println("modified: true")
 	}
 	fmt.Println("user db: " + *userDB)
 	report(readOnly, port.ScopeUser, *userDB)
