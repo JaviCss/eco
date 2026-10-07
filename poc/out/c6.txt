@@ -1,0 +1,138 @@
+﻿== C6 ==
+node: v24.14.0
+npm:  11.9.0
+packages: C:/Users/Javier Css/Desktop/Asistente/eco/poc/c6-npm-tarballs/{plataforma,principal}
+scratch: C:/Users/Javier Css/.arn/scratch/ARN-1090/c6
+flags usados en todas las instalaciones: --no-audit --no-fund --install-strategy=hoisted
+pack: npm pack --no-audit --no-fund --pack-destination <scratch>
+
+=== STEP 1: npm pack plataforma ===
+-- command: npm pack --no-audit --no-fund --pack-destination <scratch>   [cwd: poc/c6-npm-tarballs/plataforma]
+npm notice
+npm notice package: @eco-poc/plataforma-win@0.0.1
+npm notice Tarball Contents
+npm notice 57B cli.js
+npm notice 236B package.json
+npm notice Tarball Details
+npm notice name: @eco-poc/plataforma-win
+npm notice version: 0.0.1
+npm notice filename: eco-poc-plataforma-win-0.0.1.tgz
+npm notice package size: 328 B
+npm notice unpacked size: 293 B
+npm notice shasum: 5d68e074661d4475ec4e2620634b2d7a66ef2bcf
+npm notice integrity: sha512-XdfNtmtap655T[...]vzGvIzXSMZA9Q==
+npm notice total files: 2
+npm notice
+eco-poc-plataforma-win-0.0.1.tgz
+
+=== STEP 2: npm pack principal ===
+-- command: npm pack --no-audit --no-fund --pack-destination <scratch>   [cwd: poc/c6-npm-tarballs/principal]
+npm notice
+npm notice package: @eco-poc/principal@0.0.1
+npm notice Tarball Contents
+npm notice 1.0kB cli.js
+npm notice 353B package.json
+npm notice Tarball Details
+npm notice name: @eco-poc/principal
+npm notice version: 0.0.1
+npm notice filename: eco-poc-principal-0.0.1.tgz
+npm notice package size: 802 B
+npm notice unpacked size: 1.4 kB
+npm notice shasum: c67ab47e918f9a4e4a26d8fa977d43fa376b315e
+npm notice integrity: sha512-wUfo/He8QTR6m[...]mBdE9cK5b5+zA==
+npm notice total files: 2
+npm notice
+eco-poc-principal-0.0.1.tgz
+
+tarballs renombrados a nombres estables en el scratch:
+  plataforma-win-0.0.1.tgz        (de eco-poc-plataforma-win-0.0.1.tgz)
+  eco-poc-principal-0.0.1.tgz
+
+=== POSITIVA: install ambos tarballs ===
+-- cwd: C:/Users/Javier Css/.arn/scratch/ARN-1090/c6\positiva
+-- command: npm install --no-audit --no-fund --install-strategy=hoisted C:/Users/Javier Css/.arn/scratch/ARN-1090/c6\plataforma-win-0.0.1.tgz C:/Users/Javier Css/.arn/scratch/ARN-1090/c6\eco-poc-principal-0.0.1.tgz
+-- flags usados: --no-audit --no-fund --install-strategy=hoisted
+
+added 2 packages in 1s
+exit_code=0
+
+-- contenido de node_modules\.bin:
+  eco
+  eco-win
+  eco-win.cmd
+  eco-win.ps1
+  eco.cmd
+  eco.ps1
+
+-- node_modules\@eco-poc:
+  plataforma-win
+  principal
+
+-- comando: node_modules\.bin\eco-win.cmd
+eco-win ok
+exit_code=0
+
+-- comando: node_modules\.bin\eco.cmd   (principal -> delega al bin de plataforma)
+eco-win ok
+exit_code=0
+
+-- comando: npm ls --all --no-audit --no-fund
+c6-positiva@0.0.1 C:\Users\Javier Css\.arn\scratch\ARN-1090\c6\positiva
++-- @eco-poc/plataforma-win@0.0.1
+`-- @eco-poc/principal@0.0.1
+  `-- @eco-poc/plataforma-win@0.0.1 deduped invalid: "file:../plataforma-win-0.0.1.tgz" from node_modules/@eco-poc/principal
+
+npm error code ELSPROBLEMS
+npm error invalid: @eco-poc/plataforma-win@0.0.1 C:\Users\Javier Css\.arn\scratch\ARN-1090\c6\positiva\node_modules\@eco-poc\plataforma-win
+npm error A complete log of this run can be found in: C:\Users\Javier Css\AppData\Local\npm-cache\_logs\2026-10-07T04_20_10_510Z-debug-0.log
+exit_code=1
+
+=== CONTROL NEGATIVO: instalar SOLO el principal ===
+-- cwd: C:/Users/Javier Css/.arn/scratch/ARN-1090/c6\negativa   (directorio limpio)
+-- command: npm install --no-audit --no-fund --install-strategy=hoisted C:/Users/Javier Css/.arn/scratch/ARN-1090/c6\eco-poc-principal-0.0.1.tgz
+-- flags usados: --no-audit --no-fund --install-strategy=hoisted
+npm warn tarball tarball data for @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz (null) seems to be corrupted. Trying again.
+npm warn tarball tarball data for @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz (null) seems to be corrupted. Trying again.
+npm warn tarball tarball data for @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz (null) seems to be corrupted. Trying again.
+npm warn tarball tarball data for @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz (null) seems to be corrupted. Trying again.
+
+added 1 package in 1s
+exit_code=0
+
+-- contenido de node_modules\.bin:
+  eco
+  eco.cmd
+  eco.ps1
+
+-- node_modules\@eco-poc:
+  principal
+
+-- comando: node_modules\.bin\eco.cmd
+eco: platform binary missing: eco-win.cmd
+exit_code=2
+
+-- comando: npm ls --all --no-audit --no-fund
+c6-negativa@0.0.1 C:\Users\Javier Css\.arn\scratch\ARN-1090\c6\negativa
+`-- @eco-poc/principal@0.0.1
+  `-- UNMET OPTIONAL DEPENDENCY @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz
+
+exit_code=0
+
+=== VEREDICTO ===
+POSITIVA: OK. node_modules\.bin contiene eco, eco.cmd, eco.ps1, eco-win, eco-win.cmd, eco-win.ps1.
+  node_modules\.bin\eco.cmd imprime 'eco-win ok' (exit 0): el principal encuentra y ejecuta el bin de la plataforma.
+  node_modules\.bin\eco-win.cmd imprime 'eco-win ok' (exit 0) directo.
+  npm install: 'added 2 packages', exit 0, sin warnings.
+  npm ls --all: ELSPROBLEMS exit 1 -> marca 'invalid' la dep opcional por el spec file: relativo.
+    El spec guardado es file:../plataforma-win-0.0.1.tgz y al desempacar en node_modules/@eco-poc/principal
+    ese path relativo ya no apunta al tarball. No afecta la ejecucion del bin, solo la validacion del arbol.
+CONTROL NEGATIVO: el principal SI se instala (added 1 package, exit 0). node_modules\.bin queda con
+  eco, eco.cmd, eco.ps1 -- falta eco-win por completo. node_modules\@eco-poc solo tiene principal.
+  node_modules\.bin\eco.cmd corre y falla en runtime: 'eco: platform binary missing: eco-win.cmd', exit 2.
+  npm ls --all reporta 'UNMET OPTIONAL DEPENDENCY @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz'.
+  npm AVISA o SE CALLA: avisa, pero con un mensaje ENGAÑOSO. 4x
+    'npm warn tarball tarball data for @eco-poc/plataforma-win@file:../plataforma-win-0.0.1.tgz (null) seems to be corrupted. Trying again.'
+  exit code sigue siendo 0 y nunca dice 'optional dependency omitida'. El diagnostico real (UNMET OPTIONAL
+  DEPENDENCY) solo aparece si uno corre npm ls --all a mano.
+  O sea: el fallo es silencioso por defecto en la salida del install, y aun asi hay ruido de warning
+  que blames corrupcion del tarball en vez de la omision de la opcional.

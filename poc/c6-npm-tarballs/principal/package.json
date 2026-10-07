@@ -1,0 +1,16 @@
+{
+  "name": "@eco-poc/principal",
+  "version": "0.0.1",
+  "description": "Main package for the eco poc; delegates to the platform package binary.",
+  "bin": {
+    "eco": "cli.js"
+  },
+  "files": [
+    "cli.js"
+  ],
+  "optionalDependencies": {
+    "@eco-poc/plataforma-win": "file:../plataforma-win-0.0.1.tgz"
+  },
+  "license": "MIT",
+  "private": true
+}

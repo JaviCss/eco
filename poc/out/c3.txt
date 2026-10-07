@@ -1,0 +1,73 @@
+﻿== C3 ==
+
+$ go version
+go version go1.26.1 windows/amd64
+
+
+$ go env GOPROXY
+https://proxy.golang.org,direct
+
+
+$ go list -m modernc.org/sqlite
+modernc.org/sqlite v1.60.1
+
+
+$ go vet ./...
+
+
+$ c3.exe
+db_path = C:/Users/Javier Css/.arn/scratch/ARN-1090/c3/c3.db
+
+> SELECT sqlite_version();
+3.53.4
+
+> CREATE VIRTUAL TABLE con_trigram USING fts5(body, tokenize='trigram');
+
+> CREATE VIRTUAL TABLE con_default USING fts5(body);
+
+> INSERT INTO con_trigram(rowid, body) VALUES (1, 'the runtime fell over');
+
+> INSERT INTO con_trigram(rowid, body) VALUES (2, 'a runtime boundary needs a seam');
+
+> INSERT INTO con_trigram(rowid, body) VALUES (3, 'runtime runtime runtime');
+
+> INSERT INTO con_trigram(rowid, body) VALUES (4, 'the port is still a port');
+
+> INSERT INTO con_trigram(rowid, body) VALUES (5, 'runtime is not a boundary');
+
+> SELECT count(*) FROM con_trigram;
+rows = 5
+
+> INSERT INTO con_default(rowid, body) VALUES (1, 'the runtime fell over');
+
+> INSERT INTO con_default(rowid, body) VALUES (2, 'a runtime boundary needs a seam');
+
+> INSERT INTO con_default(rowid, body) VALUES (3, 'runtime runtime runtime');
+
+> INSERT INTO con_default(rowid, body) VALUES (4, 'the port is still a port');
+
+> INSERT INTO con_default(rowid, body) VALUES (5, 'runtime is not a boundary');
+
+> SELECT count(*) FROM con_default;
+rows = 5
+
+> SELECT count(*) FROM con_trigram WHERE con_trigram MATCH 'untime';
+rows = 4
+
+> SELECT count(*) FROM con_default WHERE con_default MATCH 'untime';
+rows = 0
+
+> SELECT 'difference', (SELECT count(*) FROM con_trigram WHERE con_trigram MATCH 'untime') - (SELECT count(*) FROM con_default WHERE con_default MATCH 'untime');
+rows = 4
+
+> SELECT rowid, body, bm25(con_trigram) AS score FROM con_trigram WHERE con_trigram MATCH 'untime' ORDER BY score;
+rowid=3 score=-1.5984703632887192e-06 body=runtime runtime runtime
+rowid=1 score=-1.0731707317073174e-06 body=the runtime fell over
+rowid=5 score=-9.9642431466031e-07 body=runtime is not a boundary
+rowid=2 score=-8.9989235737352e-07 body=a runtime boundary needs a seam
+
+SUMMARY sqlite_version=3.53.4
+SUMMARY ununtime_trigram_rows=4
+SUMMARY ununtime_default_rows=0
+SUMMARY difference_rows=4
+

@@ -1,0 +1,122 @@
+﻿== C4 ==
+
+$ go version
+go version go1.26.1 windows/amd64
+
+
+$ go env GOPROXY
+https://proxy.golang.org,direct
+
+
+$ go list -m modernc.org/sqlite
+modernc.org/sqlite v1.60.1
+
+================================================================
+$ c4.exe -mode parent -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db -busy 5000 -immediate true    # POSITIVA run 1/3 (esperado: busy=0, rows=16000, integrity=ok)
+================================================================
+schema = CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY, worker INT, n INT, body TEXT);
+exec = "C:\\Users\\Javier Css\\Desktop\\Asistente\\eco\\poc\\c4-dos-procesos\\c4.exe" -mode child -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db -busy=5000 -immediate=true -workers=4 -rows=2000
+--- child 0 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=7999 busy=1 other=0 max_insert_ms=5030 total_ms=49021 first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+--- child 1 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=8000 busy=0 other=0 max_insert_ms=4575 total_ms=50315 first_busy_raw="" first_other_raw=""
+
+SELECT count(*) FROM t;
+rows = 15999
+PRAGMA integrity_check;
+ok
+PRAGMA journal_mode;
+wal
+
+PARENT ok=15999 busy=1 other=0 max_insert_ms=5030 rows=15999 expected=16000 integrity_check=ok first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+
+
+================================================================
+$ c4.exe -mode parent -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db -busy 5000 -immediate true    # POSITIVA run 2/3 (misma config)
+================================================================
+schema = CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY, worker INT, n INT, body TEXT);
+exec = "C:\\Users\\Javier Css\\Desktop\\Asistente\\eco\\poc\\c4-dos-procesos\\c4.exe" -mode child -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db -busy=5000 -immediate=true -workers=4 -rows=2000
+--- child 0 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=8000 busy=0 other=0 max_insert_ms=5031 total_ms=46495 first_busy_raw="" first_other_raw=""
+--- child 1 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=7998 busy=2 other=0 max_insert_ms=5028 total_ms=45567 first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+
+SELECT count(*) FROM t;
+rows = 15998
+PRAGMA integrity_check;
+ok
+PRAGMA journal_mode;
+wal
+
+PARENT ok=15998 busy=2 other=0 max_insert_ms=5031 rows=15998 expected=16000 integrity_check=ok first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+
+
+================================================================
+$ c4.exe -mode parent -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db -busy 5000 -immediate true    # POSITIVA run 3/3 (misma config)
+================================================================
+schema = CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY, worker INT, n INT, body TEXT);
+exec = "C:\\Users\\Javier Css\\Desktop\\Asistente\\eco\\poc\\c4-dos-procesos\\c4.exe" -mode child -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db -busy=5000 -immediate=true -workers=4 -rows=2000
+--- child 0 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=7999 busy=1 other=0 max_insert_ms=5027 total_ms=37830 first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+--- child 1 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/positive.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=8000 busy=0 other=0 max_insert_ms=4659 total_ms=43370 first_busy_raw="" first_other_raw=""
+
+SELECT count(*) FROM t;
+rows = 15999
+PRAGMA integrity_check;
+ok
+PRAGMA journal_mode;
+wal
+
+PARENT ok=15999 busy=1 other=0 max_insert_ms=5027 rows=15999 expected=16000 integrity_check=ok first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+
+
+================================================================
+$ c4.exe -mode parent -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/negative.db -busy 0 -immediate false    # CONTROL NEGATIVO (DEBE mostrar SQLITE_BUSY)
+================================================================
+schema = CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY, worker INT, n INT, body TEXT);
+exec = "C:\\Users\\Javier Css\\Desktop\\Asistente\\eco\\poc\\c4-dos-procesos\\c4.exe" -mode child -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/negative.db -busy=0 -immediate=false -workers=4 -rows=2000
+--- child 0 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/negative.db?_pragma=journal_mode(WAL)
+CHILD_RESULT ok=27 busy=7973 other=0 max_insert_ms=58 total_ms=156 first_busy_raw="database is locked (261)" first_other_raw=""
+--- child 1 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/negative.db?_pragma=journal_mode(WAL)
+CHILD_RESULT ok=195 busy=7805 other=0 max_insert_ms=75 total_ms=530 first_busy_raw="database is locked (5) (SQLITE_BUSY)" first_other_raw=""
+
+SELECT count(*) FROM t;
+rows = 222
+PRAGMA integrity_check;
+ok
+PRAGMA journal_mode;
+wal
+
+PARENT ok=222 busy=15778 other=0 max_insert_ms=75 rows=222 expected=16000 integrity_check=ok first_busy_raw="database is locked (261)" first_other_raw=""
+
+
+================================================================
+$ c4.exe -mode parent -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/probe20s.db -busy 20000 -immediate true    # SONDA busy_timeout=20000 (caracteriza si el busy handler se respeta)
+================================================================
+schema = CREATE TABLE IF NOT EXISTS t(id INTEGER PRIMARY KEY, worker INT, n INT, body TEXT);
+exec = "C:\\Users\\Javier Css\\Desktop\\Asistente\\eco\\poc\\c4-dos-procesos\\c4.exe" -mode child -db C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/probe20s.db -busy=20000 -immediate=true -workers=4 -rows=2000
+--- child 0 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/probe20s.db?_pragma=busy_timeout(20000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=8000 busy=0 other=0 max_insert_ms=4482 total_ms=39920 first_busy_raw="" first_other_raw=""
+--- child 1 (exit=0) ---
+child_dsn = file:C:/Users/Javier Css/.arn/scratch/ARN-1090/c4/probe20s.db?_pragma=busy_timeout(20000)&_pragma=journal_mode(WAL)&_txlock=immediate
+CHILD_RESULT ok=8000 busy=0 other=0 max_insert_ms=4751 total_ms=41517 first_busy_raw="" first_other_raw=""
+
+SELECT count(*) FROM t;
+rows = 16000
+PRAGMA integrity_check;
+ok
+PRAGMA journal_mode;
+wal
+
+PARENT ok=16000 busy=0 other=0 max_insert_ms=4751 rows=16000 expected=16000 integrity_check=ok first_busy_raw="" first_other_raw=""
+

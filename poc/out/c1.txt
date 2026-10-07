@@ -1,0 +1,183 @@
+== C1 ==
+
+Fact: a module in the eco repo CANNOT import github.com/JaviCss/arn-v2/base/internal/eco.
+Go forbids it. No replace directive fixes it. Not even a replace on the package path itself.
+
+Module used: REAL (github.com/JaviCss/arn-v2/base at
+C:/Users/Javier Css/Desktop/Asistente/arn-v2/base). No stand-in was needed.
+Reason: base/go.mod declares zero requires, and base/internal/eco imports zero
+external packages (it is a self-contained stub). Nothing in base pulls
+github.com/JaviCss/eco, so the require of base resolves cleanly.
+
+Environment: go version go1.26.1 windows/amd64, GOFLAGS empty, GOWORK off.
+
+------------------------------------------------------------------
+go.mod final used (whole file)
+------------------------------------------------------------------
+C:/Users/Javier Css/Desktop/Asistente/eco/poc/c1-interno/go.mod
+
+module github.com/JaviCss/eco/poc/c1
+
+go 1.26
+
+require github.com/JaviCss/arn-v2/base v0.0.0
+
+replace github.com/JaviCss/arn-v2/base => "C:/Users/Javier Css/Desktop/Asistente/arn-v2/base"
+
+replace github.com/JaviCss/eco => ../../
+
+NOTE ON THE QUOTES: the replace target must be quoted. Without the quotes the
+go.mod lexer splits on the space in "Javier Css" and fails:
+
+  $ go build ./...
+  go: errors parsing go.mod:
+  C:\Users\Javier Css\Desktop\Asistente\eco\poc\c1-interno\go.mod:7:
+    replace C:/Users/Javier: version "Css/Desktop/Asistente/arn-v2/base" invalid:
+    must be of the form v1.2.3
+
+  $ go mod edit -json
+  go: errors parsing go.mod:
+  C:\Users\Javier Css\Desktop\Asistente\eco\poc\c1-interno\go.mod:7:
+    replace C:/Users/Javier: version "Css/Desktop/Asistente/arn-v2/base" invalid:
+    must be of the form v1.2.3
+
+------------------------------------------------------------------
+COMMAND: go mod edit -json        (cwd = eco/poc/c1-interno)
+------------------------------------------------------------------
+{
+	"Module": {
+		"Path": "github.com/JaviCss/eco/poc/c1"
+	},
+	"Go": "1.26",
+	"Require": [
+		{
+			"Path": "github.com/JaviCss/arn-v2/base",
+			"Version": "v0.0.0"
+		}
+	],
+	"Exclude": null,
+	"Replace": [
+		{
+			"Old": {
+				"Path": "github.com/JaviCss/arn-v2/base"
+			},
+			"New": {
+				"Path": "C:/Users/Javier Css/Desktop/Asistente/arn-v2/base"
+			}
+		},
+		{
+			"Old": {
+				"Path": "github.com/JaviCss/eco"
+			},
+			"New": {
+				"Path": "../../"
+			}
+		}
+	],
+	"Retract": null,
+	"Tool": null,
+	"Ignore": null
+}
+EXITCODE=0
+
+Replace paths are stored verbatim and resolved relative to the go.mod directory:
+"../../" from eco/poc/c1-interno/ is eco/.
+
+------------------------------------------------------------------
+COMMAND: go list -m all           (cwd = eco/poc/c1-interno)
+------------------------------------------------------------------
+github.com/JaviCss/eco/poc/c1
+github.com/JaviCss/arn-v2/base v0.0.0 => C:/Users/Javier Css/Desktop/Asistente/arn-v2/base
+EXITCODE=0
+
+The require RESOLVES. The replacement is in effect. So any failure below is not
+a resolution failure.
+
+------------------------------------------------------------------
+TEST 1 - the internal import
+------------------------------------------------------------------
+main.go:
+
+package main
+
+import _ "github.com/JaviCss/arn-v2/base/internal/eco"
+
+func main() {}
+
+COMMAND: go build ./...          (cwd = eco/poc/c1-interno)
+
+package github.com/JaviCss/eco/poc/c1
+	main.go:3:8: use of internal package github.com/JaviCss/arn-v2/base/internal/eco not allowed
+EXITCODE=1
+
+KEY ERROR LINE:
+main.go:3:8: use of internal package github.com/JaviCss/arn-v2/base/internal/eco not allowed
+
+------------------------------------------------------------------
+CONTROL A - public package of the SAME base module compiles
+------------------------------------------------------------------
+The module github.com/JaviCss/arn-v2/base has a public root package `base`
+(embed.go). The ONLY swap is the import path: internal/eco -> base.
+
+main.go:
+
+package main
+
+import _ "github.com/JaviCss/arn-v2/base"
+
+func main() {}
+
+COMMAND: go build ./...          (cwd = eco/poc/c1-interno)
+
+EXITCODE=0
+
+Same go.mod, same replace, same require. Only the internal path changed and it
+builds. That isolates the failure to the internal rule.
+
+NOTE: github.com/JaviCss/arn-v2/base/cmd/arn is package main and cannot be used
+as an import control, so the base root package is the public control used here.
+
+------------------------------------------------------------------
+CONTROL B - a public package in this very module still compiles
+------------------------------------------------------------------
+COMMAND: go build ./publico       (cwd = eco/poc/c1-interno)
+
+EXITCODE=0
+
+COMMAND: go build .               (cwd = eco/poc/c1-interno)
+
+package github.com/JaviCss/eco/poc/c1
+	main.go:3:8: use of internal package github.com/JaviCss/arn-v2/base/internal/eco not allowed
+EXITCODE=1
+
+Same module, same go.mod, same replace, same invocation. ./publico compiles, .
+fails. The cause is the internal import and nothing else.
+
+------------------------------------------------------------------
+CONTROL C - a replace on the package path does not help either
+------------------------------------------------------------------
+COMMAND: go mod edit "-replace=github.com/JaviCss/arn-v2/base/internal/eco=C:/Users/Javier Css/Desktop/Asistente/arn-v2/base/internal/eco"
+         go build ./...           (cwd = eco/poc/c1-interno)
+
+package github.com/JaviCss/eco/poc/c1
+	main.go:3:8: use of internal package github.com/JaviCss/arn-v2/base/internal/eco not allowed
+EXITCODE=1
+
+COMMAND: go mod edit "-dropreplace=github.com/JaviCss/arn-v2/base/internal/eco"
+         go build ./...           (cwd = eco/poc/c1-interno)
+
+package github.com/JaviCss/eco/poc/c1
+	main.go:3:8: use of internal package github.com/JaviCss/arn-v2/base/internal/eco not allowed
+EXITCODE=1
+
+Replace directives operate on MODULE paths, not package paths, and the internal
+visibility check runs after resolution. There is no replace that unlocks an
+internal package.
+
+------------------------------------------------------------------
+VERDICT C1
+------------------------------------------------------------------
+C1 CONFIRMED with the real module. A module of the eco repo cannot import
+github.com/JaviCss/arn-v2/base/internal/eco. Error:
+main.go:3:8: use of internal package github.com/JaviCss/arn-v2/base/internal/eco not allowed
+Controls A, B and C each separate "internal" from every other cause.

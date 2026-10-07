@@ -1,0 +1,185 @@
+== C2 ==
+
+Fact: a local `replace` in a module's own go.mod is NOT enough for
+`go install modulo@tag`. The @version path never reads the local go.mod, and if
+the replace DOES travel with the published module, Go refuses the install
+outright. The replace has to live in the CONSUMER.
+
+Environment: go version go1.26.1 windows/amd64, real network available.
+
+Toy module (scratch/ARN-1090/c2/juego):
+
+  go.mod                      module example.com/juego
+                              go 1.26
+                              require example.com/dependencia v0.0.0
+                              replace example.com/dependencia => ./vacia
+  cmd/juego/main.go           imports example.com/dependencia
+  vacia/go.mod                module example.com/dependencia
+  vacia/lib.go                package dependencia, func Saludo() string
+
+Two proxies were used:
+  * the real one (https://proxy.golang.org,direct) for the local-dir cases
+  * GOPROXY=file:///C:/Users/Javier%20Css/.arn/scratch/ARN-1090/c2/proxy
+    for the cases that need the module to actually EXIST somewhere
+
+The file proxy was built by hand (script: scratch/ARN-1090/c2/publish.ps1) and
+published:
+  example.com/dependencia@v1.0.0
+  example.com/juego@v1.0.0   go.mod CONTAINS the replace  -> installed as-is
+  example.com/juego@v1.1.0   same tree, replace REMOVED
+  example.com/juego@v1.2.0   same tree, replace removed, plus a ./cmd package
+
+A real proxy strips nested modules from the zip, and so does publish.ps1: the
+published juego zip contains only go.mod and cmd/**. The ./vacia directory is
+gone. That is what makes the replace unresolvable downstream.
+
+------------------------------------------------------------------
+0. CONTROL POSITIVE - from INSIDE the module
+------------------------------------------------------------------
+COMMAND: go build -o NUL ./cmd/juego   (cwd = scratch/ARN-1090/c2/juego)
+EXITCODE=0
+
+COMMAND: go list -m all                (cwd = scratch/ARN-1090/c2/juego)
+example.com/juego
+example.com/dependencia v0.0.0 => ./vacia
+EXITCODE=0
+
+COMMAND: go install ./cmd/juego        (cwd = scratch/ARN-1090/c2/juego)
+EXITCODE=0
+
+The code and the replace are fine. Every failure below is NOT a code problem.
+
+------------------------------------------------------------------
+1. FROM OUTSIDE, @latest, against the REAL proxy
+------------------------------------------------------------------
+COMMAND: go install example.com/juego/cmd/juego@latest   (cwd = C:/Users/Javier Css)
+
+go: example.com/juego/cmd/juego@latest: unrecognized import path "example.com/juego/cmd/juego": reading https://example.com/juego/cmd/juego?go-get=1: 404 Not Found
+EXITCODE=1
+
+This is cause #1 and it is the simplest one: @latest goes to the proxy and the
+proxy has never heard of the module. The local go.mod was not consulted at all.
+
+------------------------------------------------------------------
+2. THE KEY CASE - module published WITH the replace
+------------------------------------------------------------------
+COMMAND: go install example.com/juego/cmd/juego@v1.0.0   (cwd = C:/Users/Javier Css)
+         GOPROXY=file:///C:/Users/Javier%20Css/.arn/scratch/ARN-1090/c2/proxy
+
+go: downloading example.com/juego v1.0.0
+go: example.com/juego/cmd/juego@v1.0.0 (in example.com/juego@v1.0.0):
+	The go.mod file for the module providing named packages contains one or
+	more replace directives. It must not contain directives that would cause
+	it to be interpreted differently than if it were the main module.
+EXITCODE=1
+
+KEY ERROR LINE (one line):
+The go.mod file for the module providing named packages contains one or more replace directives.
+
+This is THE error that proves C2. Same tree as v1.1.0. The ONLY difference is
+that this one still carries `replace example.com/dependencia => ./vacia`. Go
+refuses it because a dependency installed by path must mean the same thing as
+when it is the main module, and a filesystem replace cannot.
+
+------------------------------------------------------------------
+3. SAME TREE, replace REMOVED - proves it is only the replace
+------------------------------------------------------------------
+COMMAND: go install example.com/juego/cmd/juego@v1.1.0   (cwd = C:/Users/Javier Css)
+
+go: downloading example.com/juego v1.1.0
+go: downloading example.com/dependencia v1.0.0
+EXITCODE=0
+
+COMMAND: go install example.com/juego/cmd/juego@latest   (cwd = C:/Users/Javier Css)
+EXITCODE=0
+
+COMMAND: go install example.com/juego/cmd@latest        (cwd = C:/Users/Javier Css)
+go: downloading example.com/juego v1.2.0
+EXITCODE=0
+GOBIN: cmd.exe
+
+Identical source tree. Without the replace it installs. With it, it does not.
+
+------------------------------------------------------------------
+4. THE REPLACE LIVES IN THE CONSUMER
+------------------------------------------------------------------
+consumidor/go.mod, main.go imports example.com/dependencia.
+
+COMMAND: go build -o NUL .   (cwd = scratch/ARN-1090/c2/consumidor)
+         WITHOUT a replace
+
+go: downloading example.com/dependencia v0.0.0
+main.go:6:2: example.com/dependencia@v0.0.0: reading file:///C:/Users/Javier%20Css/.arn/scratch/ARN-1090/c2/proxy/example.com/dependencia/@v/v0.0.0.zip: El sistema no puede encontrar el archivo especificado.
+EXITCODE=1
+
+COMMAND: go mod edit -replace=example.com/dependencia=../juego/vacia
+COMMAND: go build -o NUL .   (cwd = scratch/ARN-1090/c2/consumidor)
+
+EXITCODE=0
+
+The consumer cannot resolve it on its own. Add the replace to the CONSUMER and
+the same code builds. That is the whole point: the replace is the consumer's
+business, and it can never be shipped inside the dependency.
+
+------------------------------------------------------------------
+5. RULING OUT MODULE MODE
+------------------------------------------------------------------
+COMMAND: go install example.com/juego/cmd/juego@v1.0.0   GOFLAGS=-mod=mod GO111MODULE=on
+
+go: example.com/juego/cmd/juego@v1.0.0 (in example.com/juego@v1.0.0):
+	The go.mod file for the module providing named packages contains one or
+	more replace directives. It must not contain directives that would cause
+	it to be interpreted differently than if it were the main module.
+EXITCODE=1
+
+COMMAND: go install example.com/juego/cmd/juego@v1.1.0   same flags
+EXITCODE=0
+
+COMMAND: go install example.com/juego/cmd/juego@v1.0.0   GO111MODULE=off
+
+go: modules disabled by GO111MODULE=off; see 'go help modules'
+EXITCODE=1
+
+GO111MODULE=off fails for an unrelated reason (no modules at all). With modules
+on, -mod=mod and -mod=readonly both give the replace error. Not a module-mode
+problem.
+
+------------------------------------------------------------------
+6. THE PATH THAT WORKS - real module, real proxy
+------------------------------------------------------------------
+COMMAND: go install golang.org/x/tools/cmd/goimports@latest   (cwd = C:/Users/Javier Css)
+
+go: downloading golang.org/x/tools v0.51.0
+go: downloading golang.org/x/telemetry v0.0.0-20260924152758-ed294f943157
+go: downloading golang.org/x/mod v0.41.0
+go: downloading golang.org/x/sync v0.23.0
+go: downloading golang.org/x/sys v0.48.0
+EXITCODE=0
+GOBIN: goimports.exe
+
+@version works perfectly when the module has no replace. The failure above is
+the replace, not the mechanism.
+
+------------------------------------------------------------------
+ONE-LINE VERDICT PER FAILURE
+------------------------------------------------------------------
+Case 1 (@latest vs real proxy): unrecognized import path ... 404
+  -> the @version path consults the proxy, not the local go.mod. Replace never
+     had a chance to be read.
+
+Case 2 (@v1.0.0, module published WITH the replace):
+  "The go.mod file for the module providing named packages contains one or more
+   replace directives."
+  -> THIS is the error that proves C2.
+
+Case 4 (consumer without the replace): cannot find v0.0.0.zip
+  -> the consumer is the only party that can supply the replace.
+
+------------------------------------------------------------------
+VERDICT C2
+------------------------------------------------------------------
+C2 CONFIRMED. go install m@v does not read the working copy's go.mod, and if a
+replace rides along in the published module Go refuses to install it at all. The
+same tree without the replace installs cleanly. A replace must therefore live in
+the consumer's go.mod, which means such a module can never be installed by
+`go install m@v` and only builds through `go get`/`go build` in the consumer.

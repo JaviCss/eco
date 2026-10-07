@@ -1,0 +1,88 @@
+{
+  "resultType": "complete",
+  "_meta": {
+    "io.modelcontextprotocol/serverInfo": {
+      "name": "eco-poc",
+      "version": "0.0.1"
+    }
+  },
+  "ttlMs": 0,
+  "cacheScope": "public",
+  "tools": [
+    {
+      "description": "Search text.",
+      "inputSchema": {
+        "properties": {
+          "pattern": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pattern"
+        ],
+        "type": "object"
+      },
+      "name": "grep"
+    },
+    {
+      "description": "List a dir.",
+      "inputSchema": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "list"
+    },
+    {
+      "description": "Read a file.",
+      "inputSchema": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "read"
+    },
+    {
+      "description": "Stat a path.",
+      "inputSchema": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "stat"
+    },
+    {
+      "description": "Write a file.",
+      "inputSchema": {
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "write"
+    }
+  ]
+}

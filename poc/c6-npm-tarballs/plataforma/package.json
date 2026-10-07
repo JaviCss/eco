@@ -1,0 +1,13 @@
+{
+  "name": "@eco-poc/plataforma-win",
+  "version": "0.0.1",
+  "description": "Win platform binary package for the eco poc.",
+  "bin": {
+    "eco-win": "cli.js"
+  },
+  "files": [
+    "cli.js"
+  ],
+  "license": "MIT",
+  "private": true
+}

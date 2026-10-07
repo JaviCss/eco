@@ -1,0 +1,60 @@
+﻿== C5 ==
+repo: C:/Users/Javier Css/Desktop/Asistente/eco
+module: poc/c5-mcp-tools-list (module github.com/JaviCss/eco/poc/c5, go 1.26)
+go toolchain: go version go1.26.1 windows/amd64
+
+--- command: go mod tidy (in poc/c5-mcp-tools-list) ---
+
+--- command: cat go.mod ---
+module github.com/JaviCss/eco/poc/c5
+
+go 1.26
+
+require github.com/modelcontextprotocol/go-sdk v1.8.0
+
+require (
+	github.com/google/jsonschema-go v0.4.3 // indirect
+	github.com/segmentio/asm v1.1.3 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
+)
+
+--- command: go env GOMODCACHE ---
+C:\Users\Javier Css\go\pkg\mod
+
+sdk source read: C:/Users/Javier Css/go/pkg/mod/github.com/modelcontextprotocol/go-sdk@v1.8.0/mcp
+  NewInMemoryTransports (transport.go:183), Server.AddTool (server.go:315), Client.Connect (client.go:308), ClientSession.ListTools (client.go:1263), Tool.InputSchema any (protocol.go:1895..1930)
+
+--- command: go vet ./... ---
+
+--- command: go run . C:/Users/Javier Css/Desktop/Asistente/eco/poc/out ---
+tools_count: 5
+tools_list_bytes_compact: 843
+tools_list_bytes_indented: 1582
+valid_utf8: true
+tools_list_tokens_est_bytes_div_4: 210.75
+tools_list_json_file: C:\Users\Javier Css\Desktop\Asistente\eco\poc\out\c5-tools-list.json
+
+
+--- notes ---
+tools_count: 5
+tools_list_bytes_compact (json.Marshal of *ListToolsResult): 843
+tools_list_bytes_indented (json.MarshalIndent): 1582
+valid_utf8: true
+tokens_est (bytes/4, compact): 210.75
+full JSON response: poc/out/c5-tools-list.json (not pasted here)
+
+tool registration path: (*mcp.Server).AddTool(t *mcp.Tool, h mcp.ToolHandler) -- the RAW method form.
+No typed Out was needed. Deviation from 'Out generico': zero.
+  - InputSchema is a hand-written map[string]any (type/properties/required) and OutputSchema is left nil.
+  - The generic top-level mcp.AddTool[In,Out] was NOT used; it would have required an Out type parameter.
+  - Server.AddTool validates only that InputSchema marshals to a JSON object with type == object; no OutputSchema is demanded.
+  - No empty struct per tool was needed.
+
+observed wire overhead: the SDK result carries extra non-spec fields (resultType, _meta.io.modelcontextprotocol/serverInfo, ttlMs, cacheScope).
+  These are SDK caching fields, not the tools/list payload proper; they account for part of the 843 bytes.
+  The tools array alone is the remainder. See c5-tools-list.json.
