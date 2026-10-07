@@ -187,9 +187,6 @@ func (s *Server) hostAllowed(host string) bool {
 	s.mu.Lock()
 	allowed := s.allowed
 	s.mu.Unlock()
-	if name, _, err := net.SplitHostPort(host); err == nil && strings.EqualFold(name, "localhost") {
-		return true
-	}
 	for _, candidate := range allowed {
 		if strings.EqualFold(candidate, host) {
 			return true

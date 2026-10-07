@@ -204,6 +204,14 @@ func TestHeaderOrder(t *testing.T) {
 			t.Fatalf("foreign Host: got %d, want 421 (%s)", code, payload)
 		}
 		assertError(t, payload, "host mismatch")
+		code, payload = d.raw(http.MethodPost, "/v1/read", body, func(req *http.Request) {
+			req.Host = "localhost:9"
+			req.Header.Set("Authorization", "Bearer "+d.token)
+		})
+		if code != 421 {
+			t.Fatalf("Host localhost:9 against a listener on another port: got %d, want 421 (%s)", code, payload)
+		}
+		assertError(t, payload, "host mismatch")
 	})
 
 	t.Run("origin", func(t *testing.T) {
@@ -552,9 +560,9 @@ func TestPromoteFromTheFakeIntoAProfileHumanStore(t *testing.T) {
 
 func TestPromoteIntoAFakeIsUnavailable(t *testing.T) {
 	d := startDoor(t, port.NewFake())
-	code, payload := d.authedPost("/v1/promote", map[string]any{"ids": []string{"z3-1"}})
-	if code != 503 && code != 404 {
-		t.Fatalf("promote into a fake: got %d, want 503 or 404 (%s)", code, payload)
+	code, payload := d.authedPost("/v1/promote", map[string]any{"ids": []string{"absent-id"}})
+	if code != 503 {
+		t.Fatalf("promote into a fake with an absent id: got %d, want 503 (%s)", code, payload)
 	}
 	text := string(payload)
 	if strings.Contains(text, "fake.go") || strings.Contains(text, ".go:") {
