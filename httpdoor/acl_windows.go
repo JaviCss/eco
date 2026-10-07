@@ -82,22 +82,6 @@ func currentUserSID() (string, error) {
 	return sid, nil
 }
 
-func restrictFileToOwner(path string) error {
-	sd, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
-	if err != nil {
-		return fmt.Errorf("httpdoor: the DACL of %s is unreadable: %w", filepath.Base(path), err)
-	}
-	dacl, _, err := sd.DACL()
-	if err != nil {
-		return fmt.Errorf("httpdoor: the owner DACL could not be read: %w", err)
-	}
-	info := uint32(windows.DACL_SECURITY_INFORMATION | windows.PROTECTED_DACL_SECURITY_INFORMATION)
-	if err := windows.SetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.SECURITY_INFORMATION(info), nil, nil, dacl, nil); err != nil {
-		return fmt.Errorf("httpdoor: the DACL could not be applied: %w", err)
-	}
-	return nil
-}
-
 func PortFileACL(path string) ([]string, error) {
 	sd, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
 	if err != nil {
