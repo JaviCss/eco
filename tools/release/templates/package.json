@@ -1,0 +1,19 @@
+{
+  "name": "@{{.Scope}}/eco",
+  "version": "{{.Version}}",
+  "description": "The memory of ARN: one binary per platform, chosen at install time.",
+  "bin": {
+    "eco": "bin/eco.js"
+  },
+  "files": [
+    "bin/eco.js",
+    "README.md"
+  ],
+  "optionalDependencies": {
+{{- range $index, $optional := .Optionals}}{{if $index}},
+    {{end}}"{{$optional.Name}}": "{{$optional.Version}}"{{- end}}
+  },
+  "engines": {
+    "node": ">= 20"
+  }
+}
