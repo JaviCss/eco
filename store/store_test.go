@@ -81,11 +81,11 @@ func (o *outageStore) promotionProfile() Profile {
 	return o.inner.cfg.Profile
 }
 
-func (o *outageStore) appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
+func (o *outageStore) appendPromotedBatch(ctx context.Context, scope port.Scope, axis port.Axis, entries []port.Entry) ([]port.Entry, error) {
 	if err := o.guard(ctx, "Promote", scope, axis); err != nil {
-		return port.Entry{}, err
+		return nil, err
 	}
-	return o.inner.appendPromoted(ctx, scope, axis, entry)
+	return o.inner.appendPromotedBatch(ctx, scope, axis, entries)
 }
 
 func (o *outageStore) preflightPromotion(ctx context.Context, scope port.Scope, axis port.Axis, targets []PromotedTarget) error {

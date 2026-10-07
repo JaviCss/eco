@@ -37,7 +37,7 @@ func promotionDoubleNamed(t *testing.T, name string) promotionDouble {
 			setDown: fakeOutage.SetUnavailable,
 			downed:  func() port.Port { return fakeOutage },
 			cut: func(after int) *cuttingPort {
-				return &cuttingPort{Port: fakeTarget, appendFn: fakeTarget.appendPromoted, after: after, err: errCut}
+				return &cuttingPort{Port: fakeTarget, batchFn: fakeTarget.appendPromotedBatch, after: after, err: errCut}
 			},
 		},
 		{
@@ -47,7 +47,7 @@ func promotionDoubleNamed(t *testing.T, name string) promotionDouble {
 			setDown: storeOutage.SetUnavailable,
 			downed:  func() port.Port { return storeOutage },
 			cut: func(after int) *cuttingPort {
-				return &cuttingPort{Port: storeTarget, appendFn: storeTarget.appendPromoted, after: after, err: errCut}
+				return &cuttingPort{Port: storeTarget, batchFn: storeTarget.appendPromotedBatch, after: after, err: errCut}
 			},
 		},
 	}
@@ -62,28 +62,26 @@ func promotionDoubleNamed(t *testing.T, name string) promotionDouble {
 
 type cuttingPort struct {
 	port.Port
-	appendFn func(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error)
+	batchFn  func(ctx context.Context, scope port.Scope, axis port.Axis, entries []port.Entry) ([]port.Entry, error)
 	after    int
 	seen     int
 	appended []string
 	err      error
 }
 
-func (c *cuttingPort) Append(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
+func (c *cuttingPort) appendPromotedBatch(ctx context.Context, scope port.Scope, axis port.Axis, entries []port.Entry) ([]port.Entry, error) {
 	if c.seen >= c.after {
-		return port.Entry{}, c.err
+		return nil, c.err
 	}
 	c.seen++
-	stored, err := c.appendFn(ctx, scope, axis, entry)
+	stored, err := c.batchFn(ctx, scope, axis, entries)
 	if err != nil {
-		return port.Entry{}, err
+		return nil, err
 	}
-	c.appended = append(c.appended, stored.ID)
+	for _, entry := range stored {
+		c.appended = append(c.appended, entry.ID)
+	}
 	return stored, nil
-}
-
-func (c *cuttingPort) appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
-	return c.Append(ctx, scope, axis, entry)
 }
 
 func (c *cuttingPort) preflightPromotion(context.Context, port.Scope, port.Axis, []PromotedTarget) error {
@@ -151,13 +149,16 @@ func TestPromoteMatrix(t *testing.T) {
 			t.Run("a_cut_and_a_retry_converge", func(t *testing.T) {
 				d := promotionDoubleNamed(t, name)
 				seedZ3(t, d.source, "a", "b", "c")
-				cut := d.cut(1)
+				cut := d.cut(0)
 				_, err := Promote(context.Background(), d.source, cut, []string{"a", "b", "c"})
 				if err == nil {
 					t.Fatal("the interrupted batch reported success")
 				}
-				if len(cut.appended) != 1 {
-					t.Fatalf("the cut landed after %d appends (err %v), want 1", len(cut.appended), err)
+				if len(cut.appended) != 0 {
+					t.Fatalf("the cut wrote %d entries (err %v), want 0: the batch is one transaction", len(cut.appended), err)
+				}
+				if got := readZ2(t, d.target); len(got) != 0 {
+					t.Fatalf("the cut left %d entries in Z2, want 0: %v", len(got), got)
 				}
 				written, err := Promote(context.Background(), d.source, d.target, []string{"a", "b", "c"})
 				if err != nil {

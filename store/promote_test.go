@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os/exec"
@@ -534,5 +535,99 @@ func TestPromoteWithACancelledContextTouchesNothing(t *testing.T) {
 	}
 	if got := readZ2(t, target); len(got) != 0 {
 		t.Fatalf("a cancelled promotion wrote %d entries to Z2, want 0: %v", len(got), got)
+	}
+}
+
+func TestPromoteIntoZ2IsAllOrNothing(t *testing.T) {
+	source := port.NewFake()
+	ids := make([]string, 0, 24)
+	for i := 0; i < 24; i++ {
+		id := fmt.Sprintf("z3-%02d", i)
+		ids = append(ids, id)
+		body := "body of " + id
+		if i == 12 {
+			body = strings.Repeat("x", MaxBodyBytes+1)
+		}
+		if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{ID: id, Body: body}); err != nil {
+			t.Fatalf("seed Z3 %s: %v", id, err)
+		}
+	}
+	target := openAt(t, t.TempDir(), ProfileHuman, "runtime")
+	_, err := Promote(context.Background(), source, target, ids)
+	if !errors.Is(err, port.ErrInvalidEntry) {
+		t.Fatalf("a batch whose thirteenth body is too long: got %v, want ErrInvalidEntry", err)
+	}
+	if got := readZ2(t, target); len(got) != 0 {
+		t.Fatalf("a batch that failed on its thirteenth row left %d entries in Z2, want 0: %v", len(got), got)
+	}
+}
+
+func holdTheWriteLock(t *testing.T, path string) func() {
+	t.Helper()
+	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(path))
+	if err != nil {
+		t.Fatalf("open the intruder: %v", err)
+	}
+	conn, err := db.Conn(context.Background())
+	if err != nil {
+		db.Close()
+		t.Fatalf("pin a connection: %v", err)
+	}
+	if _, err := conn.ExecContext(context.Background(), "BEGIN EXCLUSIVE"); err != nil {
+		conn.Close()
+		db.Close()
+		t.Fatalf("BEGIN EXCLUSIVE: %v", err)
+	}
+	return func() {
+		if _, err := conn.ExecContext(context.Background(), "ROLLBACK"); err != nil {
+			t.Errorf("ROLLBACK: %v", err)
+		}
+		conn.Close()
+		db.Close()
+	}
+}
+
+func TestPromoteCancelledDuringTheBatchLeavesNoRows(t *testing.T) {
+	for _, delay := range []time.Duration{15 * time.Millisecond, 40 * time.Millisecond} {
+		t.Run(delay.String(), func(t *testing.T) {
+			source := port.NewFake()
+			ids := make([]string, 0, 200)
+			for i := 0; i < 200; i++ {
+				id := fmt.Sprintf("z3-%03d", i)
+				ids = append(ids, id)
+				if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{ID: id, Body: "body of " + id}); err != nil {
+					t.Fatalf("seed Z3 %s: %v", id, err)
+				}
+			}
+			dir := t.TempDir()
+			target, err := Open(Config{
+				UserDB:        filepath.Join(dir, "user.db"),
+				ProjectDB:     filepath.Join(dir, "project.db"),
+				Origin:        "runtime",
+				Profile:       ProfileHuman,
+				NoBusyTimeout: true,
+			})
+			if err != nil {
+				t.Fatalf("Open: %v", err)
+			}
+			t.Cleanup(func() { _ = target.Close() })
+			release := holdTheWriteLock(t, filepath.Join(dir, "user.db"))
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan error, 1)
+			go func() {
+				_, err := Promote(ctx, source, target, ids)
+				done <- err
+			}()
+			time.Sleep(delay)
+			cancel()
+			err = <-done
+			release()
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("Promote cancelled %s into the batch: got %v, want context.Canceled", delay, err)
+			}
+			if got := readZ2(t, target); len(got) != 0 {
+				t.Fatalf("a batch cancelled %s left %d entries in Z2, want 0: %v", delay, len(got), got)
+			}
+		})
 	}
 }

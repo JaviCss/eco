@@ -413,6 +413,9 @@ func (s *Store) withRetry(ctx context.Context, op string, fn func() error) error
 		if err == nil {
 			return nil
 		}
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
 		if !isBusy(err) {
 			return err
 		}
@@ -639,23 +642,17 @@ func (s *Store) Read(ctx context.Context, scope port.Scope, axis port.Axis, limi
 }
 
 func (s *Store) Append(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
-	return s.append(ctx, scope, axis, entry, false)
+	return s.append(ctx, scope, axis, entry)
 }
 
-func (s *Store) appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
-	return s.append(ctx, scope, axis, entry, true)
-}
-
-func (s *Store) append(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry, reserved bool) (port.Entry, error) {
+func (s *Store) append(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
 	if err := checkTarget(scope, axis); err != nil {
 		return port.Entry{}, err
 	}
-	if !reserved {
-		if err := s.checkWrite(axis); err != nil {
-			return port.Entry{}, err
-		}
+	if err := s.checkWrite(axis); err != nil {
+		return port.Entry{}, err
 	}
-	entry, err := checkEntry(entry, reserved)
+	entry, err := checkEntry(entry, false)
 	if err != nil {
 		return port.Entry{}, err
 	}
