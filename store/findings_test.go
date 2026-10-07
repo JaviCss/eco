@@ -74,7 +74,7 @@ func TestStoreWriteTransactionTakesTheWriteLockUpFront(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			dir := t.TempDir()
 			user := filepath.Join(dir, "user.db")
-			s, err := Open(Config{
+			s, err := Open(Config{Profile: ProfileRuntime,
 				UserDB:      user,
 				ProjectDB:   filepath.Join(dir, "project.db"),
 				Origin:      "runtime",

@@ -10,7 +10,7 @@ import (
 
 func TestReadOnlyOpenRefusesToCreateAMissingBase(t *testing.T) {
 	dir := t.TempDir()
-	seed, err := Open(Config{
+	seed, err := Open(Config{Profile: ProfileRuntime,
 		UserDB:    filepath.Join(dir, "user.db"),
 		ProjectDB: filepath.Join(dir, "project.db"),
 		Origin:    "runtime",
@@ -22,7 +22,7 @@ func TestReadOnlyOpenRefusesToCreateAMissingBase(t *testing.T) {
 
 	empty := t.TempDir()
 	before := snapshot(t, empty)
-	_, err = Open(Config{
+	_, err = Open(Config{Profile: ProfileRuntime,
 		UserDB:    filepath.Join(empty, "user.db"),
 		ProjectDB: filepath.Join(empty, "project.db"),
 		Origin:    "doctor",
@@ -39,7 +39,7 @@ func TestReadOnlyOpenRefusesToCreateAMissingBase(t *testing.T) {
 
 func TestReadOnlyOpenReadsWithoutWriting(t *testing.T) {
 	dir := t.TempDir()
-	seed, err := Open(Config{
+	seed, err := Open(Config{Profile: ProfileRuntime,
 		UserDB:    filepath.Join(dir, "user.db"),
 		ProjectDB: filepath.Join(dir, "project.db"),
 		Origin:    "runtime",
@@ -53,7 +53,7 @@ func TestReadOnlyOpenReadsWithoutWriting(t *testing.T) {
 	seed.Close()
 
 	before := snapshot(t, dir)
-	ro, err := Open(Config{
+	ro, err := Open(Config{Profile: ProfileRuntime,
 		UserDB:    filepath.Join(dir, "user.db"),
 		ProjectDB: filepath.Join(dir, "project.db"),
 		Origin:    "doctor",

@@ -37,6 +37,7 @@ func TestBusyHelper(t *testing.T) {
 		UserDB:      userDB,
 		ProjectDB:   projectDB,
 		Origin:      "runtime",
+		Profile:     ProfileRuntime,
 		BusyTimeout: busyTimeout,
 		MaxRetries:  retries,
 		DeferredTx:  !immediate,

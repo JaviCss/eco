@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-"strings"
+	"strings"
 	"testing"
 )
 
@@ -62,7 +62,7 @@ func TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne(t *testing.T) {
 		}
 		stampBase(t, filepath.Join(real, "project.db"), newerStamps()...)
 		before := snapshot(t, root)
-		_, err := Open(Config{
+		_, err := Open(Config{Profile: ProfileRuntime,
 			UserDB:    filepath.Join(real, "user.db"),
 			ProjectDB: filepath.Join(link, "project.db"),
 			Origin:    "runtime",
@@ -89,7 +89,7 @@ func TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne(t *testing.T) {
 func assertRejectedUntouched(t *testing.T, dir, user, project, reason string) {
 	t.Helper()
 	before := snapshot(t, dir)
-	_, err := Open(Config{UserDB: user, ProjectDB: project, Origin: "runtime"})
+	_, err := Open(Config{Profile: ProfileRuntime, UserDB: user, ProjectDB: project, Origin: "runtime"})
 	if err == nil {
 		t.Fatal("Open reported success on a configuration it must refuse")
 	}
