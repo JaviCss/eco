@@ -10,7 +10,7 @@ type platform struct {
 	BinName  string
 }
 
-const scope = "javicss"
+const scope = "arn-harness"
 
 const mainPackageName = "eco"
 
