@@ -1,0 +1,40 @@
+ARN-1080 ronda 2 - ROJO contra 82e9544 (codigo sin tocar, tests nuevos primero)
+comando: go test -short -count=1 ./...
+exit code: 1
+
+--- FAIL: TestDoctorRefusesToCreateAMissingBase (2.20s)
+    main_test.go:144: doctor reported success on bases that do not exist:
+        user db: C:\Users\JAVIER~1\AppData\Local\Temp\TestDoctorRefusesToCreateAMissingBase2040038459\002\user.db
+          sqlite_version: 3.53.4
+          user_version: 1
+          application_id: 1162037553
+          journal_mode: wal
+          size_bytes: 4096
+        project db: C:\Users\JAVIER~1\AppData\Local\Temp\TestDoctorRefusesToCreateAMissingBase2040038459\002\project.db
+          sqlite_version: 3.53.4
+          user_version: 1
+          application_id: 1162037553
+          journal_mode: wal
+          size_bytes: 4096
+FAIL
+FAIL	github.com/JaviCss/eco/cmd/eco	13.659s
+ok  	github.com/JaviCss/eco/port	0.451s
+--- FAIL: TestStoreRejectsAnIDOccupiedOnAnotherAxis (0.06s)
+    findings_test.go:22: the same id on another axis: got eco: Append: eco: unavailable: sql: no rows in result set, want ErrInvalidEntry
+--- FAIL: TestStoreSearchReportsAClosedHandleAsUnavailable (0.05s)
+    findings_test.go:58: Search on a closed handle: got eco: Search: eco: not found: sql: database is closed, want ErrUnavailable
+--- FAIL: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne (0.14s)
+    --- FAIL: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/foreign_application_id_in_the_project_base (0.05s)
+        open_mirror_test.go:43: the directory changed: before map[project.db:8192], after map[project.db:8192 user.db:36864]
+    --- FAIL: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/newer_user_version_in_the_project_base (0.04s)
+        open_mirror_test.go:50: the directory changed: before map[project.db:4096], after map[project.db:4096 user.db:36864]
+    --- FAIL: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/same_path_for_both_bases (0.00s)
+        open_mirror_test.go:85: Open: got eco: Open: eco: invalid entry: user and project paths are the same file: C:\Users\JAVIER~1\AppData\Local\Temp\TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOnesame_path_for1959529173\001\same.db, want ErrUnavailable
+--- FAIL: TestPromoteWithAZ3BiggerThanThePortPage (0.26s)
+    --- FAIL: TestPromoteWithAZ3BiggerThanThePortPage/fake (0.09s)
+        promote_matrix_test.go:223: promoting through a port page of 200 out of a Z3 of 250: got eco: Promote: eco: not found: not in Z3: [z3-000], want ErrUnavailable
+--- FAIL: TestStoreRejectsSamePathForBothBases (0.00s)
+    store_test.go:210: Open with the same path for both bases: got eco: Open: eco: invalid entry: user and project paths are the same file: C:\Users\JAVIER~1\AppData\Local\Temp\TestStoreRejectsSamePathForBothBases80453432\001\same.db, want ErrUnavailable
+FAIL
+FAIL	github.com/JaviCss/eco/store	4.078s
+FAIL

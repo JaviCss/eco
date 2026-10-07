@@ -35,6 +35,7 @@ const (
 	sqlSelect = `SELECT id, axis, scope, at, body, attrs FROM entries WHERE scope = ? AND axis = ? ORDER BY at DESC, id ASC LIMIT ?`
 	sqlInsert = `INSERT INTO entries (id, axis, scope, at, body, attrs) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING`
 	sqlGet    = `SELECT id, axis, scope, at, body, attrs FROM entries WHERE scope = ? AND axis = ? AND id = ?`
+	sqlGetAny = `SELECT axis, scope FROM entries WHERE id = ? LIMIT 1`
 	sqlSearch = `SELECT e.id, e.axis, e.scope, e.at, e.body, e.attrs
 FROM entries_fts JOIN entries e ON e.rowid = entries_fts.rowid
 WHERE entries_fts MATCH ? AND e.scope = ? AND e.axis = ?
@@ -51,6 +52,7 @@ type Config struct {
 	RetryBase     time.Duration
 	DeferredTx    bool
 	NoBusyTimeout bool
+	ReadOnly      bool
 }
 
 type Store struct {
@@ -83,12 +85,13 @@ func Open(cfg Config) (*Store, error) {
 		return nil, err
 	}
 	if sameFile(user, project) {
-		return nil, fmt.Errorf("eco: Open: %w: user and project paths are the same file: %s", port.ErrInvalidEntry, user)
+		return nil, fmt.Errorf("eco: Open: %w: user and project paths are the same file: %s", port.ErrUnavailable, user)
 	}
-	for _, target := range []struct {
+	targets := []struct {
 		scope port.Scope
 		path  string
-	}{{port.ScopeUser, user}, {port.ScopeProject, project}} {
+	}{{port.ScopeUser, user}, {port.ScopeProject, project}}
+	for _, target := range targets {
 		if info, err := os.Stat(target.path); err == nil && info.IsDir() {
 			return nil, fmt.Errorf("eco: Open: %w: %s is a directory", port.ErrUnavailable, target.path)
 		}
@@ -98,14 +101,19 @@ func Open(cfg Config) (*Store, error) {
 		dbs:   map[port.Scope]*sql.DB{},
 		paths: map[port.Scope]string{port.ScopeUser: user, port.ScopeProject: project},
 	}
-	for _, target := range []struct {
-		scope port.Scope
-		path  string
-	}{{port.ScopeUser, user}, {port.ScopeProject, project}} {
+	for _, target := range targets {
 		if err := s.inspectBase(context.Background(), target.path); err != nil {
-			s.Close()
 			return nil, err
 		}
+	}
+	if cfg.ReadOnly {
+		for _, target := range targets {
+			if _, err := os.Stat(target.path); err != nil {
+				return nil, fmt.Errorf("eco: Open: %w: %s: %v; a read-only open never creates a base", port.ErrUnavailable, target.path, err)
+			}
+		}
+	}
+	for _, target := range targets {
 		if err := s.openBase(target.scope, target.path); err != nil {
 			s.Close()
 			return nil, err
@@ -154,10 +162,23 @@ func dsn(path string, busy int) string {
 }
 
 func (s *Store) dsn(path string) string {
+	if s.cfg.ReadOnly {
+		return readOnlyDSN(path, s.cfg.BusyTimeout)
+	}
 	if s.cfg.NoBusyTimeout {
 		return dsnWith(path, -1, !s.cfg.DeferredTx)
 	}
 	return dsnWith(path, s.cfg.BusyTimeout, !s.cfg.DeferredTx)
+}
+
+func readOnlyDSN(path string, busy int) string {
+	forward := filepath.ToSlash(path)
+	forward = strings.ReplaceAll(forward, "?", "%3F")
+	forward = strings.ReplaceAll(forward, "#", "%23")
+	return "file:" + forward +
+		"?_pragma=busy_timeout(" + strconv.Itoa(busy) + ")" +
+		"&_pragma=query_only(1)" +
+		"&_pragma=trusted_schema(0)"
 }
 
 func dsnWith(path string, busy int, immediate bool) string {
@@ -203,7 +224,7 @@ func (s *Store) openOnce(scope port.Scope, path string) error {
 	if err != nil {
 		return fmt.Errorf("eco: Open: %s: %w: %s: %v", scope, port.ErrUnavailable, path, err)
 	}
-	if err := prepareBase(db, path); err != nil {
+	if err := s.prepareBase(db, path); err != nil {
 		db.Close()
 		return err
 	}
@@ -270,7 +291,7 @@ func (s *Store) inspectOnce(path string) error {
 	return nil
 }
 
-func prepareBase(db *sql.DB, path string) error {
+func (s *Store) prepareBase(db *sql.DB, path string) error {
 	var appID int
 	var userVersion int
 	if err := db.QueryRow(`PRAGMA application_id`).Scan(&appID); err != nil {
@@ -278,6 +299,15 @@ func prepareBase(db *sql.DB, path string) error {
 	}
 	if err := db.QueryRow(`PRAGMA user_version`).Scan(&userVersion); err != nil {
 		return fmt.Errorf("eco: Open: %w: %s: cannot read user_version: %v", port.ErrUnavailable, path, err)
+	}
+	if s.cfg.ReadOnly {
+		if appID != ApplicationID {
+			return fmt.Errorf("eco: Open: %w: %s: application_id %d is not eco's %d", port.ErrUnavailable, path, appID, ApplicationID)
+		}
+		if userVersion > SchemaVersion {
+			return fmt.Errorf("eco: Open: %w: %s: user_version %d is newer than this binary's %d", port.ErrUnavailable, path, userVersion, SchemaVersion)
+		}
+		return nil
 	}
 	if appID == 0 && userVersion == 0 {
 		if _, err := db.Exec(fmt.Sprintf(`PRAGMA application_id = %d`, ApplicationID)); err != nil {
@@ -570,9 +600,9 @@ func (s *Store) append(ctx context.Context, scope port.Scope, axis port.Axis, en
 	if err != nil {
 		return port.Entry{}, fmt.Errorf("eco: Append: %w: %v", port.ErrInvalidEntry, err)
 	}
+	args := []any{entry.ID, string(axis), string(scope), entry.At.UnixNano(), entry.Body, attrs}
 	if err := s.withRetry(ctx, "Append", func() error {
-		_, execErr := db.ExecContext(ctx, sqlInsert, entry.ID, string(axis), string(scope), entry.At.UnixNano(), entry.Body, attrs)
-		return execErr
+		return s.writeOne(ctx, db, args)
 	}); err != nil {
 		return port.Entry{}, fmt.Errorf("eco: Append: %w: %v", port.ErrUnavailable, err)
 	}
@@ -582,9 +612,35 @@ func (s *Store) append(ctx context.Context, scope port.Scope, axis port.Axis, en
 		stored = got
 		return scanErr
 	}); err != nil {
+		if isNotFound(err) {
+			if holderAxis, holderScope, held := s.axisHolding(ctx, db, entry.ID); held {
+				return port.Entry{}, fmt.Errorf("eco: Append: %w: id %q is already used by %s/%s", port.ErrInvalidEntry, entry.ID, holderScope, holderAxis)
+			}
+		}
 		return port.Entry{}, fmt.Errorf("eco: Append: %w: %v", port.ErrUnavailable, err)
 	}
 	return stored, nil
+}
+
+func (s *Store) writeOne(ctx context.Context, db *sql.DB, args []any) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, sqlInsert, args...); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func (s *Store) axisHolding(ctx context.Context, db *sql.DB, id string) (string, string, bool) {
+	var axis string
+	var scope string
+	if err := db.QueryRowContext(ctx, sqlGetAny, id).Scan(&axis, &scope); err != nil {
+		return "", "", false
+	}
+	return axis, scope, true
 }
 
 func phrase(query string) string {
@@ -611,19 +667,19 @@ func (s *Store) Search(ctx context.Context, scope port.Scope, axis port.Axis, qu
 	}
 	rows, err := db.QueryContext(ctx, sqlSearch, phrase(trimmed), string(scope), string(axis), limit)
 	if err != nil {
-		return nil, fmt.Errorf("eco: Search: %w: %v", port.ErrNotFound, err)
+		return nil, fmt.Errorf("eco: Search: %w: %v", port.ErrUnavailable, err)
 	}
 	defer rows.Close()
 	out := []port.Entry{}
 	for rows.Next() {
 		entry, scanErr := scanEntry(rows)
 		if scanErr != nil {
-			return nil, fmt.Errorf("eco: Search: %w: %v", port.ErrNotFound, scanErr)
+			return nil, fmt.Errorf("eco: Search: %w: %v", port.ErrUnavailable, scanErr)
 		}
 		out = append(out, entry)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("eco: Search: %w: %v", port.ErrNotFound, err)
+		return nil, fmt.Errorf("eco: Search: %w: %v", port.ErrUnavailable, err)
 	}
 	if len(out) == 0 {
 		return nil, fmt.Errorf("eco: Search: %w: %q in %s/%s", port.ErrNotFound, query, scope, axis)

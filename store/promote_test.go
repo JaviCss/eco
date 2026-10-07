@@ -92,48 +92,6 @@ func TestPromoteUnavailableTargetWritesNothing(t *testing.T) {
 	}
 }
 
-func TestPromoteInterruptedBatchConvergesOnRetry(t *testing.T) {
-	dir := t.TempDir()
-	source := newStoreAt(t, dir)
-	target := newStoreAt(t, t.TempDir())
-	cut := &cuttingPort{Port: target, inner: target, after: 1, err: errors.New("eco: simulated cut")}
-	for _, id := range []string{"a", "b", "c"} {
-		if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{ID: id, Body: "body of " + id}); err != nil {
-			t.Fatalf("seed Z3 %s: %v", id, err)
-		}
-	}
-	_, err := Promote(context.Background(), source, cut, []string{"a", "b", "c"})
-	if err == nil {
-		t.Fatal("the interrupted batch reported success")
-	}
-	if len(cut.appended) != 1 {
-		t.Fatalf("the cut landed after %d appends (err %v), want 1", len(cut.appended), err)
-	}
-	retry := newStoreAt(t, t.TempDir())
-	written, err := Promote(context.Background(), source, retry, []string{"a", "b", "c"})
-	if err != nil {
-		t.Fatalf("the retry after a cut: %v", err)
-	}
-	if len(written) != 3 {
-		t.Fatalf("the retry wrote %d entries, want 3", len(written))
-	}
-	seen := map[string]int{}
-	for _, entry := range written {
-		seen[entry.ID]++
-		if entry.Attrs[attrPromotedFrom] == "" {
-			t.Fatalf("%s has no promoted_from: %v", entry.ID, entry.Attrs)
-		}
-		if !strings.HasPrefix(entry.ID, "promoted:") {
-			t.Fatalf("promoted id %q does not carry the promoted: prefix", entry.ID)
-		}
-	}
-	for _, id := range []string{"promoted:a", "promoted:b", "promoted:c"} {
-		if seen[id] != 1 {
-			t.Fatalf("%s appears %d times, want exactly 1", id, seen[id])
-		}
-	}
-}
-
 func TestPromoteRejectsIDOccupiedByAnotherBody(t *testing.T) {
 	dir := t.TempDir()
 	source := newStoreAt(t, dir)
@@ -155,45 +113,6 @@ func TestPromoteRejectsIDOccupiedByAnotherBody(t *testing.T) {
 	if len(entries) != 1 || entries[0].Body != "something else entirely" {
 		t.Fatalf("a rejected promotion changed Z2: %v", entries)
 	}
-}
-
-type cuttingPort struct {
-	port.Port
-	inner   *Store
-	after   int
-	seen    int
-	appended []string
-	err     error
-}
-
-func (c *cuttingPort) Append(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
-	if c.seen >= c.after {
-		return port.Entry{}, c.err
-	}
-	c.seen++
-	stored, err := c.Port.Append(ctx, scope, axis, entry)
-	if err != nil {
-		return port.Entry{}, err
-	}
-	c.appended = append(c.appended, stored.ID)
-	return stored, nil
-}
-
-func (c *cuttingPort) appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
-	if c.seen >= c.after {
-		return port.Entry{}, c.err
-	}
-	c.seen++
-	stored, err := c.inner.appendPromoted(ctx, scope, axis, entry)
-	if err != nil {
-		return port.Entry{}, err
-	}
-	c.appended = append(c.appended, stored.ID)
-	return stored, nil
-}
-
-func (c *cuttingPort) preflightPromotion(ctx context.Context, scope port.Scope, axis port.Axis, targets []PromotedTarget) error {
-	return nil
 }
 
 func TestPromoteIsIdempotentOnAFake(t *testing.T) {

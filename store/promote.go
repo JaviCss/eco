@@ -29,7 +29,7 @@ func planPromotion(source port.Port, ids []string) ([]PromotedTarget, error) {
 	for _, id := range ids {
 		wanted[id] = true
 	}
-	seen, err := scanFor(context.Background(), source, wanted)
+	seen, truncated, err := scanFor(context.Background(), source, wanted)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +41,10 @@ func planPromotion(source port.Port, ids []string) ([]PromotedTarget, error) {
 	}
 	if len(missing) > 0 {
 		sort.Strings(missing)
+		if truncated {
+			return nil, fmt.Errorf("eco: Promote: %w: %v not in the %d rows the port returns; Z3 excede la pagina del puerto; Promote requiere el Store",
+				port.ErrUnavailable, missing, MaxLimit)
+		}
 		return nil, fmt.Errorf("eco: Promote: %w: not in Z3: %v", port.ErrNotFound, missing)
 	}
 	out := make([]PromotedTarget, 0, len(ids))
@@ -62,21 +66,22 @@ func planPromotion(source port.Port, ids []string) ([]PromotedTarget, error) {
 	return out, nil
 }
 
-func scanFor(ctx context.Context, source port.Port, wanted map[string]bool) (map[string]port.Entry, error) {
+func scanFor(ctx context.Context, source port.Port, wanted map[string]bool) (map[string]port.Entry, bool, error) {
 	if scanner, ok := source.(promotionScanner); ok {
-		return scanner.scanForPromotion(ctx, port.ScopeProject, port.AxisZ3, wanted)
+		seen, err := scanner.scanForPromotion(ctx, port.ScopeProject, port.AxisZ3, wanted)
+		return seen, false, err
 	}
 	seen := map[string]port.Entry{}
 	entries, err := source.Read(ctx, port.ScopeProject, port.AxisZ3, MaxLimit)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	for _, entry := range entries {
 		if wanted[entry.ID] {
 			seen[entry.ID] = entry
 		}
 	}
-	return seen, nil
+	return seen, len(entries) >= MaxLimit, nil
 }
 
 type promotionScanner interface {

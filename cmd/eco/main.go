@@ -54,6 +54,7 @@ func doctor(args []string) {
 		UserDB:    *userDB,
 		ProjectDB: *projectDB,
 		Origin:    "doctor",
+		ReadOnly:  true,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "eco doctor: %v\n", err)

@@ -206,6 +206,9 @@ func TestStoreRejectsSamePathForBothBases(t *testing.T) {
 	if err == nil {
 		t.Fatal("Open with the same path for both bases reported success")
 	}
+	if !isUnavailable(err) {
+		t.Fatalf("Open with the same path for both bases: got %v, want ErrUnavailable", err)
+	}
 	if !strings.Contains(err.Error(), "same file") {
 		t.Fatalf("the rejection must name the reason, got %v", err)
 	}

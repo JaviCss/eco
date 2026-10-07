@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/JaviCss/eco/store"
 )
 
 func buildEco(t *testing.T) string {
@@ -48,12 +50,37 @@ func asExitError(err error, target **exec.ExitError) bool {
 	return false
 }
 
+func seedBases(t *testing.T, user, project string) {
+	t.Helper()
+	s, err := store.Open(store.Config{UserDB: user, ProjectDB: project, Origin: "seed"})
+	if err != nil {
+		t.Fatalf("seed the bases: %v", err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatalf("close the seeded bases: %v", err)
+	}
+}
+
+func dirNames(t *testing.T, dir string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("ReadDir %s: %v", dir, err)
+	}
+	out := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, entry.Name())
+	}
+	return out
+}
+
 func TestDoctorReportsBothBases(t *testing.T) {
 	binary := buildEco(t)
 	dir := t.TempDir()
-	out, code := run(t, binary, "doctor",
-		"--user-db", filepath.Join(dir, "user.db"),
-		"--project-db", filepath.Join(dir, "project.db"))
+	user := filepath.Join(dir, "user.db")
+	project := filepath.Join(dir, "project.db")
+	seedBases(t, user, project)
+	out, code := run(t, binary, "doctor", "--user-db", user, "--project-db", project)
 	if code != 0 {
 		t.Fatalf("doctor exited %d:\n%s", code, out)
 	}
@@ -67,6 +94,63 @@ func TestDoctorReportsBothBases(t *testing.T) {
 	}
 }
 
+func TestDoctorLeavesTheDirectoryAlone(t *testing.T) {
+	binary := buildEco(t)
+	dir := t.TempDir()
+	user := filepath.Join(dir, "user.db")
+	project := filepath.Join(dir, "project.db")
+	seedBases(t, user, project)
+	before := map[string]int64{}
+	for _, name := range dirNames(t, dir) {
+		info, err := os.Stat(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatalf("stat %s: %v", name, err)
+		}
+		before[name] = info.Size()
+	}
+	out, code := run(t, binary, "doctor", "--user-db", user, "--project-db", project)
+	if code != 0 {
+		t.Fatalf("doctor exited %d:\n%s", code, out)
+	}
+	after := map[string]int64{}
+	for _, name := range dirNames(t, dir) {
+		info, err := os.Stat(filepath.Join(dir, name))
+		if err != nil {
+			t.Fatalf("stat %s: %v", name, err)
+		}
+		after[name] = info.Size()
+	}
+	if len(after) != len(before) {
+		t.Fatalf("doctor changed the directory: before %v, after %v", before, after)
+	}
+	for name, size := range before {
+		got, ok := after[name]
+		if !ok {
+			t.Fatalf("%s disappeared: before %v, after %v", name, before, after)
+		}
+		if got != size {
+			t.Fatalf("%s changed size: before %d, after %d", name, size, got)
+		}
+	}
+}
+
+func TestDoctorRefusesToCreateAMissingBase(t *testing.T) {
+	binary := buildEco(t)
+	dir := t.TempDir()
+	out, code := run(t, binary, "doctor",
+		"--user-db", filepath.Join(dir, "user.db"),
+		"--project-db", filepath.Join(dir, "project.db"))
+	if code == 0 {
+		t.Fatalf("doctor reported success on bases that do not exist:\n%s", out)
+	}
+	if !strings.Contains(out, "unavailable") {
+		t.Fatalf("doctor must refuse with the ErrUnavailable reason:\n%s", out)
+	}
+	if got := dirNames(t, dir); len(got) != 0 {
+		t.Fatalf("doctor wrote into an empty directory: %v", got)
+	}
+}
+
 func TestDoctorWarnsOnASyncedFolder(t *testing.T) {
 	binary := buildEco(t)
 	dir := t.TempDir()
@@ -74,9 +158,10 @@ func TestDoctorWarnsOnASyncedFolder(t *testing.T) {
 	if err := os.MkdirAll(synced, 0o755); err != nil {
 		t.Fatalf("MkdirAll: %v", err)
 	}
-	out, code := run(t, binary, "doctor",
-		"--user-db", filepath.Join(synced, "user.db"),
-		"--project-db", filepath.Join(dir, "project.db"))
+	user := filepath.Join(synced, "user.db")
+	project := filepath.Join(dir, "project.db")
+	seedBases(t, user, project)
+	out, code := run(t, binary, "doctor", "--user-db", user, "--project-db", project)
 	if code != 0 {
 		t.Fatalf("doctor exited %d:\n%s", code, out)
 	}

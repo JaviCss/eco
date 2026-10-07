@@ -1,0 +1,8 @@
+ARN-1080 ronda 2 - criterio 2: cero SKIP en la suite completa
+comando: go test -count=1 -v ./...  (salida guardada en r2-green.txt) | Select-String -i skip
+alcance del grep: la salida cruda del test, sin el encabezado de este trabajo
+lineas con 'skip': 0
+
+(vacio: cero lineas con 'skip' en la salida de la suite completa)
+
+Nota: en r2-green.txt la palabra aparece una vez sola, y es la linea de resumen 'SKIP: 0' que escribe este mismo archivo.

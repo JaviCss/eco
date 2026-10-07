@@ -1,0 +1,15 @@
+ARN-1080 ronda 2 - criterio 9 y H5: doctor sobre un directorio vacio
+$ eco doctor --user-db <vacio>/user.db --project-db <vacio>/project.db
+exit code: 1
+archivos en el directorio vacio despues: []
+
+eco-e56843f9.exe : eco doctor: eco: Open: eco: unavailable: 
+C:\Users\JAVIER~1\AppData\Local\Temp\eco-empty-216ce879\user.db: GetFileAttributesEx 
+C:\Users\JAVIER~1\AppData\Local\Temp\eco-empty-216ce879\user.db: El sistema no puede encontrar el archivo 
+especificado.; a read-only open never creates a base
+En línea: 39 Carácter: 9
++ $out3 = & $bin doctor --user-db (Join-Path $empty "user.db") --projec ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (eco doctor: eco... creates a base:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

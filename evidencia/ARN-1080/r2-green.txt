@@ -1,0 +1,273 @@
+ARN-1080 ronda 2 - VERDE: suite completa
+$ go test -count=1 -v ./...
+exit code: 0
+tests y subtests PASS: 119
+SKIP: 0
+FAIL: 0
+tests de primer nivel: TestDoctorReportsBothBases, TestDoctorLeavesTheDirectoryAlone, TestDoctorRefusesToCreateAMissingBase, TestDoctorWarnsOnASyncedFolder, TestHelpListsOnlyDoctor, TestUnknownVerbIsRejected, TestConformanceRefusesToRunWithoutOutage, TestFakePassesConformance, TestAxisScopeTable, TestAppendROnProjectIsRejected, TestFakeIsConcurrencySafe, TestMerge, TestMergeDoesNotAliasItsInputs, TestBusyHelper, TestStoreRejectsAnIDOccupiedOnAnotherAxis, TestStoreSearchReportsAClosedHandleAsUnavailable, TestStoreWriteTransactionTakesTheWriteLockUpFront, TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne, TestOpenCreatesBothBasesWhenBothAreMissing, TestOpenChecksTheUserBaseBeforeItCreatesTheProjectBase, TestStorePerformanceBaseline, TestPromoteMatrix, TestPromoteWithAZ3BiggerThanThePortPage, TestPromoteMissingIDFailsTheWholeBatch, TestPromoteUnavailableTargetWritesNothing, TestPromoteRejectsIDOccupiedByAnotherBody, TestPromoteIsIdempotentOnAFake, TestStoreSearchTreatsQueryAsLiteralText, TestStoreSearchShortQueryIsNotFound, TestStoreProvenanceAndLimits, TestStoreDefaultIDIsAppliedByTheStore, TestStoreSurvivesTwoConcurrentProcesses, TestStoreLeaksBusyWithoutTheRetry, TestReadOnlyOpenRefusesToCreateAMissingBase, TestReadOnlyOpenReadsWithoutWriting, TestStoreConformance, TestStoreOpenLeavesNoArtifactsForFreshBases, TestStoreRejectsForeignApplicationID, TestStoreRejectsNewerSchema, TestStoreRejectsSamePathForBothBases, TestStoreRejectsReparseParent
+
+=== RUN   TestDoctorReportsBothBases
+--- PASS: TestDoctorReportsBothBases (2.31s)
+=== RUN   TestDoctorLeavesTheDirectoryAlone
+--- PASS: TestDoctorLeavesTheDirectoryAlone (2.30s)
+=== RUN   TestDoctorRefusesToCreateAMissingBase
+--- PASS: TestDoctorRefusesToCreateAMissingBase (2.26s)
+=== RUN   TestDoctorWarnsOnASyncedFolder
+--- PASS: TestDoctorWarnsOnASyncedFolder (2.32s)
+=== RUN   TestHelpListsOnlyDoctor
+--- PASS: TestHelpListsOnlyDoctor (2.28s)
+=== RUN   TestUnknownVerbIsRejected
+--- PASS: TestUnknownVerbIsRejected (2.35s)
+PASS
+ok  	github.com/JaviCss/eco/cmd/eco	14.307s
+=== RUN   TestConformanceRefusesToRunWithoutOutage
+--- PASS: TestConformanceRefusesToRunWithoutOutage (0.16s)
+=== RUN   TestFakePassesConformance
+=== RUN   TestFakePassesConformance/read_empty_returns_no_entries
+=== RUN   TestFakePassesConformance/append_then_read_returns_the_entry
+=== RUN   TestFakePassesConformance/append_without_id_is_rejected
+=== RUN   TestFakePassesConformance/append_same_key_twice_stores_one_entry
+=== RUN   TestFakePassesConformance/append_same_key_twice_returns_the_same_entry
+=== RUN   TestFakePassesConformance/append_and_read_do_not_alias_attrs
+=== RUN   TestFakePassesConformance/at_is_stored_and_returned_as_utc
+=== RUN   TestFakePassesConformance/read_orders_newest_first
+=== RUN   TestFakePassesConformance/read_honors_limit
+=== RUN   TestFakePassesConformance/append_axis_out_of_scope_is_rejected
+=== RUN   TestFakePassesConformance/invalid_scope_is_rejected
+=== RUN   TestFakePassesConformance/validation_wins_over_cancelled_context
+=== RUN   TestFakePassesConformance/cancelled_context_wins_over_outage
+=== RUN   TestFakePassesConformance/validation_wins_over_outage
+=== RUN   TestFakePassesConformance/search_finds_body_substring
+=== RUN   TestFakePassesConformance/search_without_match_returns_not_found
+=== RUN   TestFakePassesConformance/probe_reports_healthy
+=== RUN   TestFakePassesConformance/unavailable_makes_every_operation_report_unavailable
+=== RUN   TestFakePassesConformance/not_found_and_unavailable_stay_distinct
+=== RUN   TestFakePassesConformance/cancelled_context_is_respected_and_touches_nothing
+=== RUN   TestFakePassesConformance/scopes_are_separate_stores
+--- PASS: TestFakePassesConformance (0.00s)
+    --- PASS: TestFakePassesConformance/read_empty_returns_no_entries (0.00s)
+    --- PASS: TestFakePassesConformance/append_then_read_returns_the_entry (0.00s)
+    --- PASS: TestFakePassesConformance/append_without_id_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/append_same_key_twice_stores_one_entry (0.00s)
+    --- PASS: TestFakePassesConformance/append_same_key_twice_returns_the_same_entry (0.00s)
+    --- PASS: TestFakePassesConformance/append_and_read_do_not_alias_attrs (0.00s)
+    --- PASS: TestFakePassesConformance/at_is_stored_and_returned_as_utc (0.00s)
+    --- PASS: TestFakePassesConformance/read_orders_newest_first (0.00s)
+    --- PASS: TestFakePassesConformance/read_honors_limit (0.00s)
+    --- PASS: TestFakePassesConformance/append_axis_out_of_scope_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/invalid_scope_is_rejected (0.00s)
+    --- PASS: TestFakePassesConformance/validation_wins_over_cancelled_context (0.00s)
+    --- PASS: TestFakePassesConformance/cancelled_context_wins_over_outage (0.00s)
+    --- PASS: TestFakePassesConformance/validation_wins_over_outage (0.00s)
+    --- PASS: TestFakePassesConformance/search_finds_body_substring (0.00s)
+    --- PASS: TestFakePassesConformance/search_without_match_returns_not_found (0.00s)
+    --- PASS: TestFakePassesConformance/probe_reports_healthy (0.00s)
+    --- PASS: TestFakePassesConformance/unavailable_makes_every_operation_report_unavailable (0.00s)
+    --- PASS: TestFakePassesConformance/not_found_and_unavailable_stay_distinct (0.00s)
+    --- PASS: TestFakePassesConformance/cancelled_context_is_respected_and_touches_nothing (0.00s)
+    --- PASS: TestFakePassesConformance/scopes_are_separate_stores (0.00s)
+=== RUN   TestAxisScopeTable
+--- PASS: TestAxisScopeTable (0.00s)
+=== RUN   TestAppendROnProjectIsRejected
+--- PASS: TestAppendROnProjectIsRejected (0.00s)
+=== RUN   TestFakeIsConcurrencySafe
+--- PASS: TestFakeIsConcurrencySafe (0.00s)
+=== RUN   TestMerge
+=== RUN   TestMerge/both_empty
+=== RUN   TestMerge/only_user
+=== RUN   TestMerge/only_project
+=== RUN   TestMerge/newest_first_across_scopes
+=== RUN   TestMerge/tie_broken_by_id
+--- PASS: TestMerge (0.00s)
+    --- PASS: TestMerge/both_empty (0.00s)
+    --- PASS: TestMerge/only_user (0.00s)
+    --- PASS: TestMerge/only_project (0.00s)
+    --- PASS: TestMerge/newest_first_across_scopes (0.00s)
+    --- PASS: TestMerge/tie_broken_by_id (0.00s)
+=== RUN   TestMergeDoesNotAliasItsInputs
+--- PASS: TestMergeDoesNotAliasItsInputs (0.00s)
+PASS
+ok  	github.com/JaviCss/eco/port	0.456s
+=== RUN   TestBusyHelper
+    busy_test.go:18: not the helper process; the two-process driver runs this in a child
+--- PASS: TestBusyHelper (0.00s)
+=== RUN   TestStoreRejectsAnIDOccupiedOnAnotherAxis
+--- PASS: TestStoreRejectsAnIDOccupiedOnAnotherAxis (0.06s)
+=== RUN   TestStoreSearchReportsAClosedHandleAsUnavailable
+--- PASS: TestStoreSearchReportsAClosedHandleAsUnavailable (0.05s)
+=== RUN   TestStoreWriteTransactionTakesTheWriteLockUpFront
+=== RUN   TestStoreWriteTransactionTakesTheWriteLockUpFront/immediate
+=== RUN   TestStoreWriteTransactionTakesTheWriteLockUpFront/deferred
+--- PASS: TestStoreWriteTransactionTakesTheWriteLockUpFront (0.38s)
+    --- PASS: TestStoreWriteTransactionTakesTheWriteLockUpFront/immediate (0.33s)
+    --- PASS: TestStoreWriteTransactionTakesTheWriteLockUpFront/deferred (0.06s)
+=== RUN   TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne
+=== RUN   TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/foreign_application_id_in_the_project_base
+=== RUN   TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/newer_user_version_in_the_project_base
+=== RUN   TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/reparse_point_on_the_project_base
+=== RUN   TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/same_path_for_both_bases
+--- PASS: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne (0.11s)
+    --- PASS: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/foreign_application_id_in_the_project_base (0.02s)
+    --- PASS: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/newer_user_version_in_the_project_base (0.02s)
+    --- PASS: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/reparse_point_on_the_project_base (0.07s)
+    --- PASS: TestOpenRefusesTheBadBaseBeforeItTouchesTheGoodOne/same_path_for_both_bases (0.00s)
+=== RUN   TestOpenCreatesBothBasesWhenBothAreMissing
+--- PASS: TestOpenCreatesBothBasesWhenBothAreMissing (0.05s)
+=== RUN   TestOpenChecksTheUserBaseBeforeItCreatesTheProjectBase
+--- PASS: TestOpenChecksTheUserBaseBeforeItCreatesTheProjectBase (0.02s)
+=== RUN   TestStorePerformanceBaseline
+PERF seed_10000_append_total_ms=4115
+PERF append_1000_total_ms=376 mean_us=376.7
+PERF search_100_total_ms=2344 mean_us=23443.9 hits=1000
+PERF promote_100_from_z3_10000_total_ms=74 mean_us=748.7 written=100
+--- PASS: TestStorePerformanceBaseline (6.96s)
+=== RUN   TestPromoteMatrix
+=== RUN   TestPromoteMatrix/fake
+=== RUN   TestPromoteMatrix/fake/missing_id_fails_the_whole_batch
+=== RUN   TestPromoteMatrix/fake/down_z2_writes_nothing
+=== RUN   TestPromoteMatrix/fake/a_cut_and_a_retry_converge
+=== RUN   TestPromoteMatrix/fake/an_occupied_id_with_another_body_is_refused
+=== RUN   TestPromoteMatrix/store
+=== RUN   TestPromoteMatrix/store/missing_id_fails_the_whole_batch
+=== RUN   TestPromoteMatrix/store/down_z2_writes_nothing
+=== RUN   TestPromoteMatrix/store/a_cut_and_a_retry_converge
+=== RUN   TestPromoteMatrix/store/an_occupied_id_with_another_body_is_refused
+--- PASS: TestPromoteMatrix (0.75s)
+    --- PASS: TestPromoteMatrix/fake (0.37s)
+        --- PASS: TestPromoteMatrix/fake/missing_id_fails_the_whole_batch (0.09s)
+        --- PASS: TestPromoteMatrix/fake/down_z2_writes_nothing (0.09s)
+        --- PASS: TestPromoteMatrix/fake/a_cut_and_a_retry_converge (0.10s)
+        --- PASS: TestPromoteMatrix/fake/an_occupied_id_with_another_body_is_refused (0.09s)
+    --- PASS: TestPromoteMatrix/store (0.37s)
+        --- PASS: TestPromoteMatrix/store/missing_id_fails_the_whole_batch (0.09s)
+        --- PASS: TestPromoteMatrix/store/down_z2_writes_nothing (0.10s)
+        --- PASS: TestPromoteMatrix/store/a_cut_and_a_retry_converge (0.09s)
+        --- PASS: TestPromoteMatrix/store/an_occupied_id_with_another_body_is_refused (0.09s)
+=== RUN   TestPromoteWithAZ3BiggerThanThePortPage
+=== RUN   TestPromoteWithAZ3BiggerThanThePortPage/fake
+=== RUN   TestPromoteWithAZ3BiggerThanThePortPage/store
+--- PASS: TestPromoteWithAZ3BiggerThanThePortPage (0.28s)
+    --- PASS: TestPromoteWithAZ3BiggerThanThePortPage/fake (0.09s)
+    --- PASS: TestPromoteWithAZ3BiggerThanThePortPage/store (0.19s)
+=== RUN   TestPromoteMissingIDFailsTheWholeBatch
+--- PASS: TestPromoteMissingIDFailsTheWholeBatch (0.00s)
+=== RUN   TestPromoteUnavailableTargetWritesNothing
+--- PASS: TestPromoteUnavailableTargetWritesNothing (0.05s)
+=== RUN   TestPromoteRejectsIDOccupiedByAnotherBody
+--- PASS: TestPromoteRejectsIDOccupiedByAnotherBody (0.09s)
+=== RUN   TestPromoteIsIdempotentOnAFake
+--- PASS: TestPromoteIsIdempotentOnAFake (0.00s)
+=== RUN   TestStoreSearchTreatsQueryAsLiteralText
+=== RUN   TestStoreSearchTreatsQueryAsLiteralText/and_is_text
+=== RUN   TestStoreSearchTreatsQueryAsLiteralText/near_is_text
+=== RUN   TestStoreSearchTreatsQueryAsLiteralText/star_is_text
+=== RUN   TestStoreSearchTreatsQueryAsLiteralText/quotes_are_text
+=== RUN   TestStoreSearchTreatsQueryAsLiteralText/trigram_finds_substring
+--- PASS: TestStoreSearchTreatsQueryAsLiteralText (0.28s)
+    --- PASS: TestStoreSearchTreatsQueryAsLiteralText/and_is_text (0.05s)
+    --- PASS: TestStoreSearchTreatsQueryAsLiteralText/near_is_text (0.05s)
+    --- PASS: TestStoreSearchTreatsQueryAsLiteralText/star_is_text (0.05s)
+    --- PASS: TestStoreSearchTreatsQueryAsLiteralText/quotes_are_text (0.05s)
+    --- PASS: TestStoreSearchTreatsQueryAsLiteralText/trigram_finds_substring (0.05s)
+=== RUN   TestStoreSearchShortQueryIsNotFound
+--- PASS: TestStoreSearchShortQueryIsNotFound (0.05s)
+=== RUN   TestStoreProvenanceAndLimits
+=== RUN   TestStoreProvenanceAndLimits/at_follows_the_judge_not_the_criterion
+=== RUN   TestStoreProvenanceAndLimits/reserved_attrs_from_the_caller_are_rejected
+=== RUN   TestStoreProvenanceAndLimits/body_and_attrs_limits
+=== RUN   TestStoreProvenanceAndLimits/limit_out_of_range
+--- PASS: TestStoreProvenanceAndLimits (0.19s)
+    --- PASS: TestStoreProvenanceAndLimits/at_follows_the_judge_not_the_criterion (0.05s)
+    --- PASS: TestStoreProvenanceAndLimits/reserved_attrs_from_the_caller_are_rejected (0.05s)
+    --- PASS: TestStoreProvenanceAndLimits/body_and_attrs_limits (0.05s)
+    --- PASS: TestStoreProvenanceAndLimits/limit_out_of_range (0.05s)
+=== RUN   TestStoreDefaultIDIsAppliedByTheStore
+--- PASS: TestStoreDefaultIDIsAppliedByTheStore (0.05s)
+=== RUN   TestStoreSurvivesTwoConcurrentProcesses
+    promote_test.go:272: --- helper 0 (exit=0, control=false) ---
+        === RUN   TestBusyHelper
+            busy_test.go:58: HELPER_CONFIG busy_timeout=5000 immediate=true max_retries=12 no_busy_timeout=false dsn=file:C:/Users/JAVIER~1/AppData/Local/Temp/TestStoreSurvivesTwoConcurrentProcesses4079743066/001/user.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=trusted_schema(0)&_txlock=immediate
+            busy_test.go:103: HELPER pid=33332 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=1134 total_ms=8071 id_base=33332000000 first_busy=""
+        --- PASS: TestBusyHelper (8.15s)
+        PASS
+    promote_test.go:272: --- helper 1 (exit=0, control=false) ---
+        === RUN   TestBusyHelper
+            busy_test.go:58: HELPER_CONFIG busy_timeout=5000 immediate=true max_retries=12 no_busy_timeout=false dsn=file:C:/Users/JAVIER~1/AppData/Local/Temp/TestStoreSurvivesTwoConcurrentProcesses4079743066/001/user.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=trusted_schema(0)&_txlock=immediate
+            busy_test.go:103: HELPER pid=30672 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=1034 total_ms=7939 id_base=30672000000 first_busy=""
+        --- PASS: TestBusyHelper (7.96s)
+        PASS
+--- PASS: TestStoreSurvivesTwoConcurrentProcesses (9.30s)
+=== RUN   TestStoreLeaksBusyWithoutTheRetry
+    promote_test.go:276: --- helper 0 (exit=0, control=true) ---
+        === RUN   TestBusyHelper
+            busy_test.go:58: HELPER_CONFIG busy_timeout=0 immediate=false max_retries=1 no_busy_timeout=true dsn=file:C:/Users/JAVIER~1/AppData/Local/Temp/TestStoreLeaksBusyWithoutTheRetry1677733654/001/user.db?_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=trusted_schema(0)
+            busy_test.go:103: HELPER pid=13000 ok=710 busy_leaked=7290 other=0 retries=14884 max_append_ms=73 total_ms=625 id_base=13000000000 first_busy="eco: Append: eco: unavailable: database is locked (5) (SQLITE_BUSY)"
+        --- PASS: TestBusyHelper (0.66s)
+        PASS
+    promote_test.go:276: --- helper 1 (exit=0, control=true) ---
+        === RUN   TestBusyHelper
+            busy_test.go:58: HELPER_CONFIG busy_timeout=0 immediate=false max_retries=1 no_busy_timeout=true dsn=file:C:/Users/JAVIER~1/AppData/Local/Temp/TestStoreLeaksBusyWithoutTheRetry1677733654/001/user.db?_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=trusted_schema(0)
+            busy_test.go:103: HELPER pid=39408 ok=978 busy_leaked=7022 other=0 retries=14359 max_append_ms=88 total_ms=752 id_base=39408000000 first_busy="eco: Append: eco: unavailable: database is locked (5) (SQLITE_BUSY)"
+        --- PASS: TestBusyHelper (0.77s)
+        PASS
+--- PASS: TestStoreLeaksBusyWithoutTheRetry (1.79s)
+=== RUN   TestReadOnlyOpenRefusesToCreateAMissingBase
+--- PASS: TestReadOnlyOpenRefusesToCreateAMissingBase (0.05s)
+=== RUN   TestReadOnlyOpenReadsWithoutWriting
+--- PASS: TestReadOnlyOpenReadsWithoutWriting (0.06s)
+=== RUN   TestStoreConformance
+=== RUN   TestStoreConformance/read_empty_returns_no_entries
+=== RUN   TestStoreConformance/append_then_read_returns_the_entry
+=== RUN   TestStoreConformance/append_without_id_is_rejected
+=== RUN   TestStoreConformance/append_same_key_twice_stores_one_entry
+=== RUN   TestStoreConformance/append_same_key_twice_returns_the_same_entry
+=== RUN   TestStoreConformance/append_and_read_do_not_alias_attrs
+=== RUN   TestStoreConformance/at_is_stored_and_returned_as_utc
+=== RUN   TestStoreConformance/read_orders_newest_first
+=== RUN   TestStoreConformance/read_honors_limit
+=== RUN   TestStoreConformance/append_axis_out_of_scope_is_rejected
+=== RUN   TestStoreConformance/invalid_scope_is_rejected
+=== RUN   TestStoreConformance/validation_wins_over_cancelled_context
+=== RUN   TestStoreConformance/cancelled_context_wins_over_outage
+=== RUN   TestStoreConformance/validation_wins_over_outage
+=== RUN   TestStoreConformance/search_finds_body_substring
+=== RUN   TestStoreConformance/search_without_match_returns_not_found
+=== RUN   TestStoreConformance/probe_reports_healthy
+=== RUN   TestStoreConformance/unavailable_makes_every_operation_report_unavailable
+=== RUN   TestStoreConformance/not_found_and_unavailable_stay_distinct
+=== RUN   TestStoreConformance/cancelled_context_is_respected_and_touches_nothing
+=== RUN   TestStoreConformance/scopes_are_separate_stores
+--- PASS: TestStoreConformance (0.95s)
+    --- PASS: TestStoreConformance/read_empty_returns_no_entries (0.03s)
+    --- PASS: TestStoreConformance/append_then_read_returns_the_entry (0.03s)
+    --- PASS: TestStoreConformance/append_without_id_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/append_same_key_twice_stores_one_entry (0.03s)
+    --- PASS: TestStoreConformance/append_same_key_twice_returns_the_same_entry (0.03s)
+    --- PASS: TestStoreConformance/append_and_read_do_not_alias_attrs (0.03s)
+    --- PASS: TestStoreConformance/at_is_stored_and_returned_as_utc (0.03s)
+    --- PASS: TestStoreConformance/read_orders_newest_first (0.04s)
+    --- PASS: TestStoreConformance/read_honors_limit (0.03s)
+    --- PASS: TestStoreConformance/append_axis_out_of_scope_is_rejected (0.04s)
+    --- PASS: TestStoreConformance/invalid_scope_is_rejected (0.03s)
+    --- PASS: TestStoreConformance/validation_wins_over_cancelled_context (0.04s)
+    --- PASS: TestStoreConformance/cancelled_context_wins_over_outage (0.04s)
+    --- PASS: TestStoreConformance/validation_wins_over_outage (0.05s)
+    --- PASS: TestStoreConformance/search_finds_body_substring (0.04s)
+    --- PASS: TestStoreConformance/search_without_match_returns_not_found (0.03s)
+    --- PASS: TestStoreConformance/probe_reports_healthy (0.03s)
+    --- PASS: TestStoreConformance/unavailable_makes_every_operation_report_unavailable (0.05s)
+    --- PASS: TestStoreConformance/not_found_and_unavailable_stay_distinct (0.05s)
+    --- PASS: TestStoreConformance/cancelled_context_is_respected_and_touches_nothing (0.03s)
+    --- PASS: TestStoreConformance/scopes_are_separate_stores (0.03s)
+=== RUN   TestStoreOpenLeavesNoArtifactsForFreshBases
+--- PASS: TestStoreOpenLeavesNoArtifactsForFreshBases (0.06s)
+=== RUN   TestStoreRejectsForeignApplicationID
+--- PASS: TestStoreRejectsForeignApplicationID (0.02s)
+=== RUN   TestStoreRejectsNewerSchema
+--- PASS: TestStoreRejectsNewerSchema (0.02s)
+=== RUN   TestStoreRejectsSamePathForBothBases
+--- PASS: TestStoreRejectsSamePathForBothBases (0.00s)
+=== RUN   TestStoreRejectsReparseParent
+--- PASS: TestStoreRejectsReparseParent (0.03s)
+PASS
+ok  	github.com/JaviCss/eco/store	22.142s

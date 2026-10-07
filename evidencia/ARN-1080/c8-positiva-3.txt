@@ -1,4 +1,20 @@
-            busy_test.go:103: HELPER pid=13816 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=2242 total_ms=6688 id_base=13816000000 first_busy=""
-            busy_test.go:103: HELPER pid=39924 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=1470 total_ms=6608 id_base=39924000000 first_busy=""
---- PASS: TestStoreSurvivesTwoConcurrentProcesses (7.89s)
-ok  	github.com/JaviCss/eco/store	8.412s
+ARN-1080 ronda 2 - criterio 8 (positiva 3)
+$ go test -count=1 -run TestStoreSurvivesTwoConcurrentProcesses -v ./store/
+exit code: 0
+
+=== RUN   TestStoreSurvivesTwoConcurrentProcesses
+    promote_test.go:272: --- helper 0 (exit=0, control=false) ---
+        === RUN   TestBusyHelper
+            busy_test.go:58: HELPER_CONFIG busy_timeout=5000 immediate=true max_retries=12 no_busy_timeout=false dsn=file:C:/Users/JAVIER~1/AppData/Local/Temp/TestStoreSurvivesTwoConcurrentProcesses1983038379/001/user.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=trusted_schema(0)&_txlock=immediate
+            busy_test.go:103: HELPER pid=10744 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=1637 total_ms=7379 id_base=10744000000 first_busy=""
+        --- PASS: TestBusyHelper (7.40s)
+        PASS
+    promote_test.go:272: --- helper 1 (exit=0, control=false) ---
+        === RUN   TestBusyHelper
+            busy_test.go:58: HELPER_CONFIG busy_timeout=5000 immediate=true max_retries=12 no_busy_timeout=false dsn=file:C:/Users/JAVIER~1/AppData/Local/Temp/TestStoreSurvivesTwoConcurrentProcesses1983038379/001/user.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=trusted_schema(0)&_txlock=immediate
+            busy_test.go:103: HELPER pid=36204 ok=8000 busy_leaked=0 other=0 retries=0 max_append_ms=2238 total_ms=8011 id_base=36204000000 first_busy=""
+        --- PASS: TestBusyHelper (8.10s)
+        PASS
+--- PASS: TestStoreSurvivesTwoConcurrentProcesses (9.25s)
+PASS
+ok  	github.com/JaviCss/eco/store	9.765s
