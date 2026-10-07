@@ -587,7 +587,7 @@ func holdTheWriteLock(t *testing.T, path string) func() {
 	}
 }
 
-func TestPromoteCancelledDuringTheBatchLeavesNoRows(t *testing.T) {
+func TestPromoteCancelledWhileWaitingForTheLockLeavesNoRows(t *testing.T) {
 	for _, delay := range []time.Duration{15 * time.Millisecond, 40 * time.Millisecond} {
 		t.Run(delay.String(), func(t *testing.T) {
 			source := port.NewFake()
