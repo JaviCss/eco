@@ -24,27 +24,28 @@ type promotionDouble struct {
 func promotionDoubleNamed(t *testing.T, name string) promotionDouble {
 	t.Helper()
 	fakeSource := port.NewFake()
-	fakeTarget := port.NewFake()
 	storeSource := newStoreAt(t, t.TempDir())
+	fakeTarget := newStoreAt(t, t.TempDir())
 	storeTarget := newStoreAt(t, t.TempDir())
-	outage := &outageStore{inner: storeTarget}
+	fakeOutage := &outageStore{inner: fakeTarget}
+	storeOutage := &outageStore{inner: storeTarget}
 	doubles := []promotionDouble{
 		{
 			name:    "fake",
 			source:  fakeSource,
 			target:  fakeTarget,
-			setDown: fakeTarget.SetUnavailable,
-			downed:  func() port.Port { return fakeTarget },
+			setDown: fakeOutage.SetUnavailable,
+			downed:  func() port.Port { return fakeOutage },
 			cut: func(after int) *cuttingPort {
-				return &cuttingPort{Port: fakeTarget, appendFn: fakeTarget.Append, after: after, err: errCut}
+				return &cuttingPort{Port: fakeTarget, appendFn: fakeTarget.appendPromoted, after: after, err: errCut}
 			},
 		},
 		{
 			name:    "store",
 			source:  storeSource,
 			target:  storeTarget,
-			setDown: outage.SetUnavailable,
-			downed:  func() port.Port { return outage },
+			setDown: storeOutage.SetUnavailable,
+			downed:  func() port.Port { return storeOutage },
 			cut: func(after int) *cuttingPort {
 				return &cuttingPort{Port: storeTarget, appendFn: storeTarget.appendPromoted, after: after, err: errCut}
 			},
@@ -87,6 +88,13 @@ func (c *cuttingPort) appendPromoted(ctx context.Context, scope port.Scope, axis
 
 func (c *cuttingPort) preflightPromotion(context.Context, port.Scope, port.Axis, []PromotedTarget) error {
 	return nil
+}
+
+func (c *cuttingPort) promotionProfile() Profile {
+	if inner, ok := c.Port.(promoter); ok {
+		return inner.promotionProfile()
+	}
+	return ProfileRuntime
 }
 
 func seedZ3(t *testing.T, source port.Port, ids ...string) {
@@ -208,25 +216,21 @@ func TestPromoteWithAZ3BiggerThanThePortPage(t *testing.T) {
 				ids = append(ids, fmt.Sprintf("z3-%03d", i))
 			}
 			seedZ3(t, d.source, ids...)
-			batch := []string{"z3-124", "z3-000"}
+			batch := []string{"z3-240", "z3-000"}
 			out, err := Promote(context.Background(), d.source, d.target, batch)
-			if name == "store" {
-				if err != nil {
-					t.Fatalf("the Store must promote a batch out of a Z3 of 250: %v", err)
+			if err != nil {
+				t.Fatalf("Promote out of a Z3 of 250 through a %s source: got %v, want nil", name, err)
+			}
+			if len(out) != 2 {
+				t.Fatalf("Promote promoted %d entries, want 2", len(out))
+			}
+			for i, want := range []string{PromotedID("z3-240"), PromotedID("z3-000")} {
+				if out[i].ID != want {
+					t.Fatalf("Promote order: entry %d is %q, want %q", i, out[i].ID, want)
 				}
-				if len(out) != 2 {
-					t.Fatalf("the Store promoted %d entries, want 2", len(out))
-				}
-				return
 			}
-			if !errors.Is(err, port.ErrUnavailable) {
-				t.Fatalf("promoting through a port page of 200 out of a Z3 of 250: got %v, want ErrUnavailable", err)
-			}
-			if !strings.Contains(err.Error(), "puerto") {
-				t.Fatalf("the failure must name the port page as the reason, got %v", err)
-			}
-			if got := readZ2(t, d.target); len(got) != 0 {
-				t.Fatalf("a refused promotion wrote %d entries to Z2, want 0: %v", len(got), got)
+			if got := readZ2(t, d.target); len(got) != 2 {
+				t.Fatalf("Z2 holds %d entries, want exactly 2: %v", len(got), got)
 			}
 		})
 	}

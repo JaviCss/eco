@@ -16,7 +16,10 @@ var (
 	ErrInvalidScope   = errors.New("eco: invalid scope")
 	ErrAxisNotInScope = errors.New("eco: axis not in scope")
 	ErrInvalidEntry   = errors.New("eco: invalid entry")
+	ErrForbidden      = errors.New("eco: forbidden")
 )
+
+const MaxBatch = 200
 
 type Scope string
 
@@ -47,6 +50,7 @@ type Entry struct {
 }
 
 type Port interface {
+	Get(ctx context.Context, scope Scope, axis Axis, ids []string) ([]Entry, error)
 	Read(ctx context.Context, scope Scope, axis Axis, limit int) ([]Entry, error)
 	Append(ctx context.Context, scope Scope, axis Axis, entry Entry) (Entry, error)
 	Search(ctx context.Context, scope Scope, axis Axis, query string, limit int) ([]Entry, error)

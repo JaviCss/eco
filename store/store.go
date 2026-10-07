@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,6 +30,7 @@ const DefaultRetries = 12
 const (
 	attrOrigin       = "origin"
 	attrPromotedFrom = "promoted_from"
+	attrSourceOrigin = "source_origin"
 )
 
 const (
@@ -53,6 +55,7 @@ type Config struct {
 	DeferredTx    bool
 	NoBusyTimeout bool
 	ReadOnly      bool
+	Profile       Profile
 }
 
 type Store struct {
@@ -123,7 +126,21 @@ func Open(cfg Config) (*Store, error) {
 }
 
 func sameFile(a, b string) bool {
-	return strings.EqualFold(filepath.Clean(a), filepath.Clean(b))
+	infoA, errA := os.Stat(a)
+	infoB, errB := os.Stat(b)
+	if errA == nil && errB == nil {
+		return os.SameFile(infoA, infoB)
+	}
+	return strings.EqualFold(resolvedDir(a), resolvedDir(b)) &&
+		strings.EqualFold(filepath.Base(a), filepath.Base(b))
+}
+
+func resolvedDir(path string) string {
+	dir := filepath.Dir(path)
+	if real, err := filepath.EvalSymlinks(dir); err == nil {
+		return filepath.Clean(real)
+	}
+	return filepath.Clean(dir)
 }
 
 func checkPath(path string) (string, error) {
@@ -450,7 +467,7 @@ func checkEntry(entry port.Entry, reserved bool) (port.Entry, error) {
 	}
 	attrs := make(map[string]string, len(entry.Attrs)+1)
 	for key, value := range entry.Attrs {
-		if !reserved && (key == attrOrigin || key == attrPromotedFrom) {
+		if !reserved && (key == attrOrigin || key == attrPromotedFrom || key == attrSourceOrigin) {
 			return port.Entry{}, fmt.Errorf("eco: Append: %w: attr %q is reserved", port.ErrInvalidEntry, key)
 		}
 		attrs[key] = value
@@ -533,11 +550,66 @@ func (s *Store) Inspect(scope port.Scope) (BaseInfo, error) {
 	return info, nil
 }
 
+func (s *Store) Get(ctx context.Context, scope port.Scope, axis port.Axis, ids []string) ([]port.Entry, error) {
+	if err := checkTarget(scope, axis); err != nil {
+		return nil, err
+	}
+	if err := checkBatch(ids); err != nil {
+		return nil, err
+	}
+	if err := s.checkRead(axis); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	db, err := s.db(scope)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]port.Entry, 0, len(ids))
+	var missing []string
+	for _, id := range ids {
+		entry, scanErr := scanEntry(db.QueryRowContext(ctx, sqlGet, string(scope), string(axis), id))
+		switch {
+		case scanErr == nil:
+			out = append(out, entry)
+		case isNotFound(scanErr):
+			missing = append(missing, id)
+		default:
+			return nil, fmt.Errorf("eco: Get: %w: %v", port.ErrUnavailable, scanErr)
+		}
+	}
+	if len(missing) > 0 {
+		sort.Strings(missing)
+		return nil, fmt.Errorf("eco: Get: %w: not in %s/%s: %v", port.ErrNotFound, scope, axis, missing)
+	}
+	return out, nil
+}
+
+func checkBatch(ids []string) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("eco: Get: %w: empty batch", port.ErrInvalidEntry)
+	}
+	if len(ids) > port.MaxBatch {
+		return fmt.Errorf("eco: Get: %w: batch of %d ids exceeds %d", port.ErrInvalidEntry, len(ids), port.MaxBatch)
+	}
+	for _, id := range ids {
+		if strings.TrimSpace(id) == "" {
+			return fmt.Errorf("eco: Get: %w: empty id in the batch", port.ErrInvalidEntry)
+		}
+	}
+	return nil
+}
+
 func (s *Store) Read(ctx context.Context, scope port.Scope, axis port.Axis, limit int) ([]port.Entry, error) {
 	if err := checkTarget(scope, axis); err != nil {
 		return nil, err
 	}
 	if err := checkLimit(limit); err != nil {
+		return nil, err
+	}
+	if err := s.checkRead(axis); err != nil {
 		return nil, err
 	}
 	if err := ctx.Err(); err != nil {
@@ -577,6 +649,11 @@ func (s *Store) appendPromoted(ctx context.Context, scope port.Scope, axis port.
 func (s *Store) append(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry, reserved bool) (port.Entry, error) {
 	if err := checkTarget(scope, axis); err != nil {
 		return port.Entry{}, err
+	}
+	if !reserved {
+		if err := s.checkWrite(axis); err != nil {
+			return port.Entry{}, err
+		}
 	}
 	entry, err := checkEntry(entry, reserved)
 	if err != nil {
@@ -652,6 +729,9 @@ func (s *Store) Search(ctx context.Context, scope port.Scope, axis port.Axis, qu
 		return nil, err
 	}
 	if err := checkLimit(limit); err != nil {
+		return nil, err
+	}
+	if err := s.checkRead(axis); err != nil {
 		return nil, err
 	}
 	if err := ctx.Err(); err != nil {

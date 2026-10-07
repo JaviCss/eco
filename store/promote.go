@@ -4,14 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sort"
 
 	"github.com/JaviCss/eco/port"
 )
 
 var ErrPromotedConflict = errors.New("eco: promoted id exists with a different body")
-
-const scanCeiling = 200000
 
 type PromotedTarget struct {
 	SourceID string
@@ -24,36 +21,24 @@ func PromotedID(sourceID string) string {
 	return "promoted:" + sourceID
 }
 
-func planPromotion(source port.Port, ids []string) ([]PromotedTarget, error) {
-	wanted := make(map[string]bool, len(ids))
-	for _, id := range ids {
-		wanted[id] = true
-	}
-	seen, truncated, err := scanFor(context.Background(), source, wanted)
+type promoter interface {
+	appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error)
+	preflightPromotion(ctx context.Context, scope port.Scope, axis port.Axis, targets []PromotedTarget) error
+	promotionProfile() Profile
+}
+
+func planPromotion(ctx context.Context, source port.Port, ids []string) ([]PromotedTarget, error) {
+	entries, err := source.Get(ctx, port.ScopeProject, port.AxisZ3, ids)
 	if err != nil {
 		return nil, err
 	}
-	var missing []string
-	for _, id := range ids {
-		if _, ok := seen[id]; !ok {
-			missing = append(missing, id)
-		}
-	}
-	if len(missing) > 0 {
-		sort.Strings(missing)
-		if truncated {
-			return nil, fmt.Errorf("eco: Promote: %w: %v not in the %d rows the port returns; Z3 excede la pagina del puerto; Promote requiere el Store",
-				port.ErrUnavailable, missing, MaxLimit)
-		}
-		return nil, fmt.Errorf("eco: Promote: %w: not in Z3: %v", port.ErrNotFound, missing)
-	}
-	out := make([]PromotedTarget, 0, len(ids))
-	for _, id := range ids {
-		entry := seen[id]
+	out := make([]PromotedTarget, 0, len(entries))
+	for _, entry := range entries {
 		attrs := map[string]string{}
 		for key, value := range entry.Attrs {
 			attrs[key] = value
 		}
+		attrs[attrSourceOrigin] = entry.Attrs[attrOrigin]
 		attrs[attrPromotedFrom] = entry.ID
 		delete(attrs, attrOrigin)
 		out = append(out, PromotedTarget{
@@ -66,79 +51,28 @@ func planPromotion(source port.Port, ids []string) ([]PromotedTarget, error) {
 	return out, nil
 }
 
-func scanFor(ctx context.Context, source port.Port, wanted map[string]bool) (map[string]port.Entry, bool, error) {
-	if scanner, ok := source.(promotionScanner); ok {
-		seen, err := scanner.scanForPromotion(ctx, port.ScopeProject, port.AxisZ3, wanted)
-		return seen, false, err
-	}
-	seen := map[string]port.Entry{}
-	entries, err := source.Read(ctx, port.ScopeProject, port.AxisZ3, MaxLimit)
-	if err != nil {
-		return nil, false, err
-	}
-	for _, entry := range entries {
-		if wanted[entry.ID] {
-			seen[entry.ID] = entry
-		}
-	}
-	return seen, len(entries) >= MaxLimit, nil
-}
-
-type promotionScanner interface {
-	scanForPromotion(ctx context.Context, scope port.Scope, axis port.Axis, wanted map[string]bool) (map[string]port.Entry, error)
-}
-
-func (s *Store) scanForPromotion(ctx context.Context, scope port.Scope, axis port.Axis, wanted map[string]bool) (map[string]port.Entry, error) {
-	db, err := s.db(scope)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := db.QueryContext(ctx, sqlSelect, string(scope), string(axis), scanCeiling)
-	if err != nil {
-		return nil, fmt.Errorf("eco: Promote: %w: %v", port.ErrUnavailable, err)
-	}
-	defer rows.Close()
-	seen := map[string]port.Entry{}
-	for rows.Next() {
-		entry, scanErr := scanEntry(rows)
-		if scanErr != nil {
-			return nil, fmt.Errorf("eco: Promote: %w: %v", port.ErrUnavailable, scanErr)
-		}
-		if wanted[entry.ID] {
-			seen[entry.ID] = entry
-			if len(seen) == len(wanted) {
-				return seen, nil
-			}
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("eco: Promote: %w: %v", port.ErrUnavailable, err)
-	}
-	return seen, nil
-}
-
-type promotedAppender interface {
-	appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error)
-}
-
-type promotedPreflight interface {
-	preflightPromotion(ctx context.Context, scope port.Scope, axis port.Axis, targets []PromotedTarget) error
-}
-
 func Promote(ctx context.Context, source port.Port, target port.Port, ids []string) ([]port.Entry, error) {
 	if len(ids) == 0 {
 		return nil, fmt.Errorf("eco: Promote: %w: empty batch", port.ErrInvalidEntry)
 	}
-	plan, err := planPromotion(source, ids)
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	plan, err := planPromotion(ctx, source, ids)
 	if err != nil {
 		return nil, err
 	}
-	if pre, ok := target.(promotedPreflight); ok {
-		if err := pre.preflightPromotion(ctx, port.ScopeUser, port.AxisZ2, plan); err != nil {
-			return nil, err
-		}
+	destination, ok := target.(promoter)
+	if !ok {
+		return nil, fmt.Errorf("eco: Promote: %w: the target is not a *Store: only the Store stamps the reserved attrs of Z2", port.ErrUnavailable)
 	}
-	appender, canPromote := target.(promotedAppender)
+	profile := destination.promotionProfile()
+	if !profile.mayPromote() {
+		return nil, fmt.Errorf("eco: Promote: %w: profile %s cannot promote into Z2", port.ErrForbidden, profile)
+	}
+	if err := destination.preflightPromotion(ctx, port.ScopeUser, port.AxisZ2, plan); err != nil {
+		return nil, err
+	}
 	out := make([]port.Entry, 0, len(plan))
 	for _, promoted := range plan {
 		entry := port.Entry{
@@ -148,12 +82,7 @@ func Promote(ctx context.Context, source port.Port, target port.Port, ids []stri
 			Body:  promoted.Body,
 			Attrs: promoted.Attrs,
 		}
-		var stored port.Entry
-		if canPromote {
-			stored, err = appender.appendPromoted(ctx, port.ScopeUser, port.AxisZ2, entry)
-		} else {
-			stored, err = target.Append(ctx, port.ScopeUser, port.AxisZ2, entry)
-		}
+		stored, err := destination.appendPromoted(ctx, port.ScopeUser, port.AxisZ2, entry)
 		if err != nil {
 			return out, err
 		}
@@ -163,6 +92,10 @@ func Promote(ctx context.Context, source port.Port, target port.Port, ids []stri
 		out = append(out, stored)
 	}
 	return out, nil
+}
+
+func (s *Store) promotionProfile() Profile {
+	return s.cfg.Profile
 }
 
 func (s *Store) preflightPromotion(ctx context.Context, scope port.Scope, axis port.Axis, targets []PromotedTarget) error {

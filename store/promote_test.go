@@ -27,7 +27,7 @@ type promoterHarness struct {
 func newHarness(t *testing.T) *promoterHarness {
 	t.Helper()
 	return &promoterHarness{targets: map[port.Scope]port.Port{
-		port.ScopeUser:    port.NewFake(),
+		port.ScopeUser:    newStoreAt(t, t.TempDir()),
 		port.ScopeProject: port.NewFake(),
 	}}
 }
@@ -115,7 +115,7 @@ func TestPromoteRejectsIDOccupiedByAnotherBody(t *testing.T) {
 	}
 }
 
-func TestPromoteIsIdempotentOnAFake(t *testing.T) {
+func TestPromoteIsIdempotent(t *testing.T) {
 	h := newHarness(t)
 	h.fillZ3(t, "a", "b")
 	first, err := h.promote(t, "a", "b")
@@ -209,7 +209,7 @@ func TestStoreProvenanceAndLimits(t *testing.T) {
 
 	t.Run("reserved_attrs_from_the_caller_are_rejected", func(t *testing.T) {
 		s := newStoreAt(t, t.TempDir())
-		for _, key := range []string{attrOrigin, attrPromotedFrom} {
+		for _, key := range []string{attrOrigin, attrPromotedFrom, attrSourceOrigin} {
 			_, err := s.Append(context.Background(), port.ScopeUser, port.AxisZ2, port.Entry{
 				ID: "res-" + key, Body: "b", Attrs: map[string]string{key: "forged"},
 			})
@@ -284,7 +284,7 @@ func runTwoProcesses(t *testing.T, control bool) {
 	dir := t.TempDir()
 	user := filepath.Join(dir, "user.db")
 	project := filepath.Join(dir, "project.db")
-	seed, err := Open(Config{UserDB: user, ProjectDB: project, Origin: "runtime"})
+	seed, err := Open(Config{Profile: ProfileRuntime, UserDB: user, ProjectDB: project, Origin: "runtime"})
 	if err != nil {
 		t.Fatalf("seed Open: %v", err)
 	}
@@ -349,7 +349,7 @@ func runTwoProcesses(t *testing.T, control bool) {
 		return
 	}
 
-	check, err := Open(Config{UserDB: user, ProjectDB: project, Origin: "runtime"})
+	check, err := Open(Config{Profile: ProfileRuntime, UserDB: user, ProjectDB: project, Origin: "runtime"})
 	if err != nil {
 		t.Fatalf("reopen after the two processes: %v", err)
 	}
@@ -406,4 +406,133 @@ func helperBusyLeak(t *testing.T, report string) int {
 		t.Fatalf("the helper reported no HELPER line:\n%s", report)
 	}
 	return total
+}
+
+func openAt(t *testing.T, dir string, profile Profile, origin string) *Store {
+	t.Helper()
+	s, err := Open(Config{
+		UserDB:    filepath.Join(dir, "user.db"),
+		ProjectDB: filepath.Join(dir, "project.db"),
+		Origin:    origin,
+		Profile:   profile,
+	})
+	if err != nil {
+		t.Fatalf("Open with profile %s: got error %v, want nil", profile, err)
+	}
+	t.Cleanup(func() { s.Close() })
+	return s
+}
+
+func TestPromoteThroughAPortWithAZ3BiggerThanThePage(t *testing.T) {
+	source := port.NewFake()
+	target := openAt(t, t.TempDir(), ProfileRuntime, "runtime")
+	for i := 0; i < 250; i++ {
+		id := fmt.Sprintf("z3-%03d", i)
+		if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{
+			ID: id, At: atOffset(i), Body: "body of " + id,
+		}); err != nil {
+			t.Fatalf("seed Z3 %s: %v", id, err)
+		}
+	}
+	out, err := Promote(context.Background(), source, target, []string{"z3-240", "z3-000"})
+	if err != nil {
+		t.Fatalf("Promote through a Port out of a Z3 of 250: got %v, want nil", err)
+	}
+	if len(out) != 2 {
+		t.Fatalf("Promote through a Port out of a Z3 of 250: got %d entries, want 2: %v", len(out), out)
+	}
+	for i, want := range []string{PromotedID("z3-240"), PromotedID("z3-000")} {
+		if out[i].ID != want {
+			t.Fatalf("Promote order: entry %d is %q, want %q", i, out[i].ID, want)
+		}
+	}
+	got, err := target.Read(context.Background(), port.ScopeUser, port.AxisZ2, MaxLimit)
+	if err != nil {
+		t.Fatalf("read Z2: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("Z2 holds %d entries, want 2: %v", len(got), got)
+	}
+}
+
+func TestPromoteKeepsTheProvenanceOfTheSourceRow(t *testing.T) {
+	source := openAt(t, t.TempDir(), ProfileRuntime, "distiller")
+	target := openAt(t, t.TempDir(), ProfileHuman, "cli")
+	if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{
+		ID: "distilled", Body: "the distilled truth",
+	}); err != nil {
+		t.Fatalf("seed Z3: %v", err)
+	}
+	out, err := Promote(context.Background(), source, target, []string{"distilled"})
+	if err != nil {
+		t.Fatalf("Promote: %v", err)
+	}
+	if len(out) != 1 {
+		t.Fatalf("Promote returned %d entries, want 1", len(out))
+	}
+	attrs := out[0].Attrs
+	if attrs[attrSourceOrigin] != "distiller" {
+		t.Fatalf("source_origin = %q, want distiller: %v", attrs[attrSourceOrigin], attrs)
+	}
+	if attrs[attrPromotedFrom] != "distilled" {
+		t.Fatalf("promoted_from = %q, want distilled: %v", attrs[attrPromotedFrom], attrs)
+	}
+	if attrs[attrOrigin] != "cli" {
+		t.Fatalf("origin = %q, want cli (the process that promoted): %v", attrs[attrOrigin], attrs)
+	}
+}
+
+func TestPromoteRefusesATargetThatIsNotAStore(t *testing.T) {
+	source := port.NewFake()
+	if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{
+		ID: "a", At: atOffset(0), Body: "body of a",
+	}); err != nil {
+		t.Fatalf("seed Z3: %v", err)
+	}
+	target := port.NewFake()
+	_, err := Promote(context.Background(), source, target, []string{"a"})
+	if !errors.Is(err, port.ErrUnavailable) {
+		t.Fatalf("Promote into a target that is not a Store: got %v, want ErrUnavailable", err)
+	}
+	if !strings.Contains(err.Error(), "not a *Store") {
+		t.Fatalf("the refusal must name the reason: got %v", err)
+	}
+	if got := readZ2(t, target); len(got) != 0 {
+		t.Fatalf("a refused promotion wrote %d entries to Z2, want 0: %v", len(got), got)
+	}
+}
+
+func TestPromoteRefusesAnAgentProfileTarget(t *testing.T) {
+	source := openAt(t, t.TempDir(), ProfileAgent, "mcp")
+	if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{
+		ID: "a", Body: "body of a",
+	}); err != nil {
+		t.Fatalf("an agent Profile must be able to write Z3: %v", err)
+	}
+	target := openAt(t, t.TempDir(), ProfileAgent, "mcp")
+	_, err := Promote(context.Background(), source, target, []string{"a"})
+	if !errors.Is(err, port.ErrForbidden) {
+		t.Fatalf("Promote with a ProfileAgent Store: got %v, want ErrForbidden", err)
+	}
+	if got := readZ2(t, target); len(got) != 0 {
+		t.Fatalf("a forbidden promotion wrote %d entries to Z2, want 0: %v", len(got), got)
+	}
+}
+
+func TestPromoteWithACancelledContextTouchesNothing(t *testing.T) {
+	source := openAt(t, t.TempDir(), ProfileRuntime, "runtime")
+	target := openAt(t, t.TempDir(), ProfileHuman, "runtime")
+	if _, err := source.Append(context.Background(), port.ScopeProject, port.AxisZ3, port.Entry{
+		ID: "a", Body: "body of a",
+	}); err != nil {
+		t.Fatalf("seed Z3: %v", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := Promote(ctx, source, target, []string{"a"}); !errors.Is(err, context.Canceled) {
+		t.Fatalf("Promote on a cancelled context: got %v, want context.Canceled", err)
+	}
+	if got := readZ2(t, target); len(got) != 0 {
+		t.Fatalf("a cancelled promotion wrote %d entries to Z2, want 0: %v", len(got), got)
+	}
 }

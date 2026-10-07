@@ -43,6 +43,13 @@ func (o *outageStore) guard(ctx context.Context, op string, scope port.Scope, ax
 	return nil
 }
 
+func (o *outageStore) Get(ctx context.Context, scope port.Scope, axis port.Axis, ids []string) ([]port.Entry, error) {
+	if err := o.guard(ctx, "Get", scope, axis); err != nil {
+		return nil, err
+	}
+	return o.inner.Get(ctx, scope, axis, ids)
+}
+
 func (o *outageStore) Read(ctx context.Context, scope port.Scope, axis port.Axis, limit int) ([]port.Entry, error) {
 	if err := o.guard(ctx, "Read", scope, axis); err != nil {
 		return nil, err
@@ -70,6 +77,24 @@ func (o *outageStore) Search(ctx context.Context, scope port.Scope, axis port.Ax
 	return o.inner.Search(ctx, scope, axis, query, limit)
 }
 
+func (o *outageStore) promotionProfile() Profile {
+	return o.inner.cfg.Profile
+}
+
+func (o *outageStore) appendPromoted(ctx context.Context, scope port.Scope, axis port.Axis, entry port.Entry) (port.Entry, error) {
+	if err := o.guard(ctx, "Promote", scope, axis); err != nil {
+		return port.Entry{}, err
+	}
+	return o.inner.appendPromoted(ctx, scope, axis, entry)
+}
+
+func (o *outageStore) preflightPromotion(ctx context.Context, scope port.Scope, axis port.Axis, targets []PromotedTarget) error {
+	if err := o.guard(ctx, "Promote", scope, axis); err != nil {
+		return err
+	}
+	return o.inner.preflightPromotion(ctx, scope, axis, targets)
+}
+
 func (o *outageStore) Probe(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return err
@@ -82,7 +107,7 @@ func (o *outageStore) Probe(ctx context.Context) error {
 
 func newStoreAt(t *testing.T, dir string) *Store {
 	t.Helper()
-	s, err := Open(Config{
+	s, err := Open(Config{Profile: ProfileRuntime,
 		UserDB:    filepath.Join(dir, "user.db"),
 		ProjectDB: filepath.Join(dir, "project.db"),
 		Origin:    "runtime",
@@ -112,7 +137,7 @@ func TestStoreOpenLeavesNoArtifactsForFreshBases(t *testing.T) {
 	if len(before) != 0 {
 		t.Fatalf("the temp dir was not empty before Open: %v", before)
 	}
-	s, err := Open(Config{UserDB: user, ProjectDB: project, Origin: "runtime"})
+	s, err := Open(Config{Profile: ProfileRuntime, UserDB: user, ProjectDB: project, Origin: "runtime"})
 	if err != nil {
 		t.Fatalf("Open: got error %v, want nil", err)
 	}
@@ -156,7 +181,7 @@ func TestStoreRejectsForeignApplicationID(t *testing.T) {
 	db.Close()
 
 	before := snapshot(t, dir)
-	_, err = Open(Config{UserDB: foreign, ProjectDB: filepath.Join(dir, "project.db"), Origin: "runtime"})
+	_, err = Open(Config{Profile: ProfileRuntime, UserDB: foreign, ProjectDB: filepath.Join(dir, "project.db"), Origin: "runtime"})
 	if err == nil {
 		t.Fatal("Open on a foreign application_id reported success")
 	}
@@ -185,7 +210,7 @@ func TestStoreRejectsNewerSchema(t *testing.T) {
 	db.Close()
 
 	before := snapshot(t, dir)
-	_, err = Open(Config{UserDB: newer, ProjectDB: filepath.Join(dir, "project.db"), Origin: "runtime"})
+	_, err = Open(Config{Profile: ProfileRuntime, UserDB: newer, ProjectDB: filepath.Join(dir, "project.db"), Origin: "runtime"})
 	if err == nil {
 		t.Fatal("Open on a newer schema reported success")
 	}
@@ -202,7 +227,7 @@ func TestStoreRejectsSamePathForBothBases(t *testing.T) {
 	dir := t.TempDir()
 	same := filepath.Join(dir, "same.db")
 	before := snapshot(t, dir)
-	_, err := Open(Config{UserDB: same, ProjectDB: same, Origin: "runtime"})
+	_, err := Open(Config{Profile: ProfileRuntime, UserDB: same, ProjectDB: same, Origin: "runtime"})
 	if err == nil {
 		t.Fatal("Open with the same path for both bases reported success")
 	}
@@ -226,7 +251,7 @@ func TestStoreRejectsReparseParent(t *testing.T) {
 		t.Skipf("this host cannot create a junction: %v", err)
 	}
 	before := snapshot(t, root)
-	_, err := Open(Config{
+	_, err := Open(Config{Profile: ProfileRuntime,
 		UserDB:    filepath.Join(link, "user.db"),
 		ProjectDB: filepath.Join(real, "project.db"),
 		Origin:    "runtime",

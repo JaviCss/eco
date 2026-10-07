@@ -420,4 +420,139 @@ func Conformance(t *testing.T, newImpl func() Port, newOutage func() Outage) {
 			t.Fatalf("project base: got %v, want only p", project)
 		}
 	})
+
+	t.Run("get_returns_the_entries_in_the_order_requested", func(t *testing.T) {
+		p := newImpl()
+		for _, id := range []string{"a", "b", "c"} {
+			if _, err := p.Append(context.Background(), ScopeUser, AxisZ2, Entry{
+				ID: id, At: at(time.Duration(len(id)) * time.Hour), Body: "body of " + id,
+			}); err != nil {
+				t.Fatalf("Append %s: got error %v, want nil", id, err)
+			}
+		}
+		entries, err := p.Get(context.Background(), ScopeUser, AxisZ2, []string{"c", "a", "b"})
+		if err != nil {
+			t.Fatalf("Get: got error %v, want nil", err)
+		}
+		if len(entries) != 3 {
+			t.Fatalf("Get of 3 ids: got %d entries, want 3", len(entries))
+		}
+		for i, want := range []string{"c", "a", "b"} {
+			if entries[i].ID != want {
+				t.Fatalf("Get order: entry %d is %q, want %q: %v", i, entries[i].ID, want, entries)
+			}
+		}
+		if entries[0].Body != "body of c" || entries[0].Axis != AxisZ2 || entries[0].Scope != ScopeUser {
+			t.Fatalf("Get returned %+v, want the whole entry of c", entries[0])
+		}
+	})
+
+	t.Run("get_with_a_missing_id_fails_the_whole_batch", func(t *testing.T) {
+		p := newImpl()
+		for _, id := range []string{"a", "b"} {
+			if _, err := p.Append(context.Background(), ScopeUser, AxisZ2, Entry{
+				ID: id, At: at(time.Hour), Body: "body of " + id,
+			}); err != nil {
+				t.Fatalf("Append %s: got error %v, want nil", id, err)
+			}
+		}
+		entries, err := p.Get(context.Background(), ScopeUser, AxisZ2, []string{"a", "ghost", "b"})
+		if !errors.Is(err, ErrNotFound) {
+			t.Fatalf("Get with a missing id: got %v, want ErrNotFound", err)
+		}
+		if errors.Is(err, ErrUnavailable) {
+			t.Fatalf("a missing id must not report an outage: %v", err)
+		}
+		if entries != nil {
+			t.Fatalf("Get with a missing id returned a partial result: %v, want none", entries)
+		}
+	})
+
+	t.Run("get_with_an_empty_batch_is_rejected", func(t *testing.T) {
+		p := newImpl()
+		if _, err := p.Get(context.Background(), ScopeUser, AxisZ2, nil); !errors.Is(err, ErrInvalidEntry) {
+			t.Fatalf("Get with no ids: got %v, want ErrInvalidEntry", err)
+		}
+		if _, err := p.Get(context.Background(), ScopeUser, AxisZ2, []string{}); !errors.Is(err, ErrInvalidEntry) {
+			t.Fatalf("Get with an empty batch: got %v, want ErrInvalidEntry", err)
+		}
+	})
+
+	t.Run("get_with_a_batch_over_the_ceiling_is_rejected", func(t *testing.T) {
+		p := newImpl()
+		ids := make([]string, MaxBatch+1)
+		for i := range ids {
+			ids[i] = "id-" + string(rune('a'+i%26)) + string(rune('a'+(i/26)%26))
+		}
+		if _, err := p.Get(context.Background(), ScopeUser, AxisZ2, ids); !errors.Is(err, ErrInvalidEntry) {
+			t.Fatalf("Get with %d ids: got %v, want ErrInvalidEntry", len(ids), err)
+		}
+	})
+
+	t.Run("get_on_an_axis_out_of_scope_is_rejected", func(t *testing.T) {
+		p := newImpl()
+		if _, err := p.Get(context.Background(), ScopeProject, AxisR, []string{"k"}); !errors.Is(err, ErrAxisNotInScope) {
+			t.Fatalf("Get R on Project: got %v, want ErrAxisNotInScope", err)
+		}
+		if _, err := p.Get(context.Background(), Scope("kit"), AxisZ2, []string{"k"}); !errors.Is(err, ErrInvalidScope) {
+			t.Fatalf("Get on an invalid scope: got %v, want ErrInvalidScope", err)
+		}
+	})
+
+	t.Run("get_validation_wins_over_a_cancelled_context", func(t *testing.T) {
+		p := newImpl()
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		if _, err := p.Get(ctx, Scope("kit"), AxisZ2, []string{"k"}); !errors.Is(err, ErrInvalidScope) {
+			t.Fatalf("Get on a cancelled context and an invalid scope: got %v, want ErrInvalidScope", err)
+		}
+		if _, err := p.Get(ctx, ScopeUser, AxisZ2, nil); !errors.Is(err, ErrInvalidEntry) {
+			t.Fatalf("Get on a cancelled context and an empty batch: got %v, want ErrInvalidEntry", err)
+		}
+	})
+
+	t.Run("get_on_a_cancelled_context_wins_over_an_outage", func(t *testing.T) {
+		p := newOutage()
+		p.SetUnavailable(true)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		if _, err := p.Get(ctx, ScopeUser, AxisZ2, []string{"k"}); !errors.Is(err, context.Canceled) {
+			t.Fatalf("Get on a cancelled context during an outage: got %v, want context.Canceled", err)
+		}
+	})
+
+	t.Run("get_during_an_outage_reports_unavailable", func(t *testing.T) {
+		p := newOutage()
+		if _, err := p.Append(context.Background(), ScopeUser, AxisZ2, Entry{
+			ID: "kept", At: at(0), Body: "kept",
+		}); err != nil {
+			t.Fatalf("Append before outage: got error %v, want nil", err)
+		}
+		p.SetUnavailable(true)
+		if _, err := p.Get(context.Background(), ScopeUser, AxisZ2, []string{"kept"}); !errors.Is(err, ErrUnavailable) {
+			t.Fatalf("Get during outage: got %v, want ErrUnavailable", err)
+		}
+		p.SetUnavailable(false)
+		entries, err := p.Get(context.Background(), ScopeUser, AxisZ2, []string{"kept"})
+		if err != nil {
+			t.Fatalf("Get after outage: got error %v, want nil", err)
+		}
+		if len(entries) != 1 || entries[0].ID != "kept" {
+			t.Fatalf("outage must not touch the store: got %v, want the entry written before it", entries)
+		}
+	})
+
+	t.Run("get_touches_nothing_on_a_cancelled_context", func(t *testing.T) {
+		p := newImpl()
+		if _, err := p.Append(context.Background(), ScopeUser, AxisZ2, Entry{
+			ID: "kept", At: at(0), Body: "kept",
+		}); err != nil {
+			t.Fatalf("Append before cancel: got error %v, want nil", err)
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		if _, err := p.Get(ctx, ScopeUser, AxisZ2, []string{"kept"}); !errors.Is(err, context.Canceled) {
+			t.Fatalf("Get on cancelled context: got %v, want context.Canceled", err)
+		}
+	})
 }

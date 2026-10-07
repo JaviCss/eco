@@ -3,6 +3,7 @@ package port
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -69,6 +70,57 @@ func (f *Fake) Probe(ctx context.Context) error {
 		return err
 	}
 	return f.down("Probe")
+}
+
+func checkBatch(ids []string) error {
+	if len(ids) == 0 {
+		return fmt.Errorf("eco: Get: %w: empty batch", ErrInvalidEntry)
+	}
+	if len(ids) > MaxBatch {
+		return fmt.Errorf("eco: Get: %w: batch of %d ids exceeds %d", ErrInvalidEntry, len(ids), MaxBatch)
+	}
+	for _, id := range ids {
+		if strings.TrimSpace(id) == "" {
+			return fmt.Errorf("eco: Get: %w: empty id in the batch", ErrInvalidEntry)
+		}
+	}
+	return nil
+}
+
+func (f *Fake) Get(ctx context.Context, scope Scope, axis Axis, ids []string) ([]Entry, error) {
+	if err := checkTarget(scope, axis); err != nil {
+		return nil, err
+	}
+	if err := checkBatch(ids); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	if err := f.down("Get"); err != nil {
+		return nil, err
+	}
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+	byID := make(map[string]Entry, len(ids))
+	for _, entry := range f.stores[scope][axis] {
+		byID[entry.ID] = entry
+	}
+	out := make([]Entry, 0, len(ids))
+	var missing []string
+	for _, id := range ids {
+		entry, ok := byID[id]
+		if !ok {
+			missing = append(missing, id)
+			continue
+		}
+		out = append(out, cloneEntry(entry))
+	}
+	if len(missing) > 0 {
+		sort.Strings(missing)
+		return nil, fmt.Errorf("eco: Get: %w: not in %s/%s: %v", ErrNotFound, scope, axis, missing)
+	}
+	return out, nil
 }
 
 func (f *Fake) Read(ctx context.Context, scope Scope, axis Axis, limit int) ([]Entry, error) {
