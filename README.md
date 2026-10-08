@@ -7,7 +7,7 @@ loopback para los programas y una CLI de verbos para el humano. El runtime
 de ARN v2, que también es Go, la importa como librería en el mismo proceso.
 Se publica dos veces desde el mismo código: `@arn-harness/eco` en npm, con el
 binario por plataforma adentro, y `github.com/JaviCss/eco` como módulo Go
-(tag `v0.1.0`, MIT).
+(tag `v0.1.1`, MIT).
 
 ## Qué clase de memoria es
 
@@ -161,7 +161,7 @@ el lote entero sin resultado parcial.
 ### Librería Go
 
 ```
-go get github.com/JaviCss/eco@v0.1.0
+go get github.com/JaviCss/eco@v0.1.1
 ```
 
 El puerto neutral al transporte vive en `github.com/JaviCss/eco/port`
@@ -193,7 +193,7 @@ port.Conformance(t,
 ```
 
 `arn-v2/base` consume exactamente esto: `base/go.mod` requiere
-`github.com/JaviCss/eco v0.1.0` sin `replace`, `base/internal/eco` reexporta
+`github.com/JaviCss/eco v0.1.1` sin `replace`, `base/internal/eco` reexporta
 los tipos de `port`, y el módulo de telemetría recibe el `Port` por
 parámetro y anexa en `User/R`.
 
@@ -211,7 +211,7 @@ por `optionalDependencies` con versión exacta: `eco-win32-x64`,
 `eco-linux-x64`, `eco-darwin-arm64`. Si falta el paquete de la plataforma
 (`--omit=optional`, os/cpu distinto), el launcher sale con código 2 y lo dice.
 
-Como módulo Go, `go install github.com/JaviCss/eco/cmd/eco@v0.1.0`. La
+Como módulo Go, `go install github.com/JaviCss/eco/cmd/eco@v0.1.1`. La
 versión viaja en el binario (`debug.ReadBuildInfo`) y `eco version` la
 imprime igual por las dos rutas. Los binarios se compilan con
 `CGO_ENABLED=0`, `-trimpath` y `-ldflags "-s -w"`; `tools/release` deja
